@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/MatchRunFacet.json",
+  "title": "MatchRunFacet",
+  "description": "Funnel of a matching run.",
+  "$defs": {
+    "MatchRunFacet": {
+      "allOf": [
+        {
+          "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunFacet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "candidates": {
+              "type": "integer"
+            },
+            "shortlisted": {
+              "type": "integer"
+            },
+            "reranked": {
+              "type": "integer"
+            },
+            "filters": {
+              "type": "object"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "jobradar_match": {
+      "$ref": "#/$defs/MatchRunFacet"
+    }
+  }
+}

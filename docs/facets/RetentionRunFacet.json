@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/RetentionRunFacet.json",
+  "title": "RetentionRunFacet",
+  "description": "Retention policy applied: what was deleted and why.",
+  "$defs": {
+    "RetentionRunFacet": {
+      "allOf": [
+        {
+          "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunFacet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "retention_days": {
+              "type": "integer"
+            },
+            "cutoff": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "deleted": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer"
+              }
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "jobradar_retention": {
+      "$ref": "#/$defs/RetentionRunFacet"
+    }
+  }
+}

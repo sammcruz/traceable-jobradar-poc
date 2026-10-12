@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/CvRunFacet.json",
+  "title": "CvRunFacet",
+  "description": "Links a run to a CV by hash only. Used by erasure to find derived data.",
+  "$defs": {
+    "CvRunFacet": {
+      "allOf": [
+        {
+          "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunFacet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "cv_hash": {
+              "type": "string",
+              "description": "SHA-256 of the CV file"
+            },
+            "converter": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "jobradar_cv": {
+      "$ref": "#/$defs/CvRunFacet"
+    }
+  }
+}

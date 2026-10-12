@@ -1,0 +1,72 @@
+# ODCS v3 data contract. Checked in CI by `jobradar check-contracts`; also usable with the Data Contract CLI.
+apiVersion: v3.0.2
+kind: DataContract
+id: urn:jobradar:gold.matches
+name: CV matches
+version: 1.0.0
+status: active
+description:
+  purpose: Which ads were recommended for which CV, by which model, and why.
+  limitations: Contains a CV hash (pseudonymous). Deleted completely by `jobradar erase`.
+  usage: Local POC. Read with any Delta reader, e.g. DuckDB delta_scan.
+schema:
+- name: matches
+  physicalName: gold.matches
+  logicalType: object
+  physicalType: table
+  properties:
+  - name: match_id
+    logicalType: string
+    physicalType: string
+    required: true
+    primaryKey: true
+  - name: run_id
+    logicalType: string
+    physicalType: string
+    required: true
+  - name: cv_hash
+    logicalType: string
+    physicalType: string
+    required: true
+    description: SHA-256 of the CV file. The CV itself never leaves data/private/
+  - name: job_id
+    logicalType: string
+    physicalType: string
+    required: true
+    primaryKey: true
+    description: 'Stable id: <source>:<source id>'
+  - name: job_content_hash
+    logicalType: string
+    physicalType: string
+  - name: rank
+    logicalType: integer
+    physicalType: int32
+    required: true
+  - name: similarity
+    logicalType: number
+    physicalType: double
+  - name: score
+    logicalType: integer
+    physicalType: int32
+    description: LLM fit score 0-100; null when not reranked
+  - name: reasons
+    logicalType: array
+    physicalType: 'list<item: string>'
+  - name: gaps
+    logicalType: array
+    physicalType: 'list<item: string>'
+  - name: model
+    logicalType: string
+    physicalType: string
+  - name: prompt_version
+    logicalType: string
+    physicalType: string
+  - name: filters_json
+    logicalType: string
+    physicalType: string
+  - name: created_at
+    logicalType: timestamp
+    physicalType: timestamp[us, tz=UTC]
+    required: true
+team:
+  name: jobradar maintainers

@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/ErasureRunFacet.json",
+  "title": "ErasureRunFacet",
+  "description": "Record of an erasure: which CVs, which files and rows were removed.",
+  "$defs": {
+    "ErasureRunFacet": {
+      "allOf": [
+        {
+          "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunFacet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "cv_hashes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "files_deleted": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "rows_deleted": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer"
+              }
+            },
+            "vacuumed": {
+              "type": "boolean"
+            },
+            "note": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "jobradar_erasure": {
+      "$ref": "#/$defs/ErasureRunFacet"
+    }
+  }
+}

@@ -22,8 +22,10 @@ def _db():
 
 
 def _open(name: str):
-    db = _db()
-    return db.open_table(name) if name in db.table_names() else None
+    try:
+        return _db().open_table(name)
+    except ValueError:  # table does not exist yet
+        return None
 
 
 def job_text(row: dict) -> str:

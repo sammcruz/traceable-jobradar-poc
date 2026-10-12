@@ -56,6 +56,8 @@ def chat_json(system: str, user: str, *, fake: callable | None = None, temperatu
     s = get_settings()
     if s.provider == "fake":
         return fake(user) if fake else {}
+    if "qwen3" in s.llm_model.lower():
+        user += "\n/no_think"  # Qwen3 soft switch: skip long reasoning, much faster for extraction
     last_error = None
     for _ in range(2):
         resp = _client().chat.completions.create(

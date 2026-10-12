@@ -1,0 +1,86 @@
+# ODCS v3 data contract. Checked in CI by `jobradar check-contracts`; also usable with the Data Contract CLI.
+apiVersion: v3.0.2
+kind: DataContract
+id: urn:jobradar:silver.jobs
+name: Job ads (cleaned)
+version: 1.0.0
+status: active
+description:
+  purpose: One row per job ad from the last 7 days, normalised across sources.
+  limitations: Contact details are removed by pattern matching, which can miss unusual formats. Ads older than the retention
+    window are deleted.
+  usage: Local POC. Read with any Delta reader, e.g. DuckDB delta_scan.
+schema:
+- name: jobs
+  physicalName: silver.jobs
+  logicalType: object
+  physicalType: table
+  properties:
+  - name: job_id
+    logicalType: string
+    physicalType: string
+    required: true
+    primaryKey: true
+    description: 'Stable id: <source>:<source id>'
+  - name: source
+    logicalType: string
+    physicalType: string
+    required: true
+  - name: source_id
+    logicalType: string
+    physicalType: string
+    required: true
+  - name: title
+    logicalType: string
+    physicalType: string
+    required: true
+  - name: company
+    logicalType: string
+    physicalType: string
+  - name: location
+    logicalType: string
+    physicalType: string
+  - name: country
+    logicalType: string
+    physicalType: string
+  - name: remote_source
+    logicalType: boolean
+    physicalType: bool
+  - name: visa_source
+    logicalType: boolean
+    physicalType: bool
+  - name: job_types
+    logicalType: array
+    physicalType: 'list<item: string>'
+  - name: tags
+    logicalType: array
+    physicalType: 'list<item: string>'
+  - name: description
+    logicalType: string
+    physicalType: string
+    description: Ad text with contact lines, e-mails and phone numbers removed
+  - name: language
+    logicalType: string
+    physicalType: string
+  - name: redactions
+    logicalType: integer
+    physicalType: int32
+    description: How many personal details were removed at ingest
+  - name: url
+    logicalType: string
+    physicalType: string
+  - name: posted_at
+    logicalType: timestamp
+    physicalType: timestamp[us, tz=UTC]
+    required: true
+    description: Publication date from the source
+  - name: ingested_at
+    logicalType: timestamp
+    physicalType: timestamp[us, tz=UTC]
+  - name: content_hash
+    logicalType: string
+    physicalType: string
+    required: true
+    description: SHA-256 of title, company and description; changes when the ad changes
+team:
+  name: jobradar maintainers

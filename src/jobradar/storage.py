@@ -89,7 +89,8 @@ def vacuum(name: str, hours: int = 0) -> int:
 def schema_fields(name: str) -> list[dict]:
     if not exists(name):
         return []
-    schema = DeltaTable(str(table_path(name))).schema().to_arrow()
+    # deltalake returns an arro3 schema; pyarrow imports it through the Arrow C interface
+    schema = pa.schema(DeltaTable(str(table_path(name))).schema().to_arrow())
     return [{"name": f.name, "type": str(f.type)} for f in schema]
 
 
@@ -99,4 +100,5 @@ def query(sql: str, tables: list[str]) -> pa.Table:
     for name in tables:
         if exists(name):
             con.register(name.replace(".", "_"), DeltaTable(str(table_path(name))).to_pyarrow_table())
-    return con.execute(sql).fetch_arrow_table()
+    result = con.execute(sql)
+    return result.to_arrow_table() if hasattr(result, "to_arrow_table") else result.fetch_arrow_table()

@@ -1,5 +1,7 @@
 # Local data never goes to Git: job ads, your CV, vectors, lineage logs
 data/
+data-demo/
+data-ci/
 cv/
 *.pdf
 .env

@@ -1,0 +1,199 @@
+# ODCS v3 data contract. Checked in CI by `jobradar check-contracts`; also usable with the Data Contract CLI.
+apiVersion: v3.0.2
+kind: DataContract
+id: urn:jobradar:gold.jobs_enriched
+name: Job ads (enriched)
+version: 1.0.0
+status: active
+description:
+  purpose: Job ads with category and extracted facts for filtering and matching.
+  limitations: Extracted fields can be wrong. field_sources tells you whether a value came from the source, a rule or a model.
+  usage: Local POC. Read with any Delta reader, e.g. DuckDB delta_scan.
+schema:
+- name: jobs_enriched
+  physicalName: gold.jobs_enriched
+  logicalType: object
+  physicalType: table
+  properties:
+  - name: job_id
+    logicalType: string
+    physicalType: string
+    required: true
+    primaryKey: true
+    description: 'Stable id: <source>:<source id>'
+  - name: content_hash
+    logicalType: string
+    physicalType: string
+    required: true
+    description: SHA-256 of title, company and description; changes when the ad changes
+  - name: source
+    logicalType: string
+    physicalType: string
+    required: true
+  - name: title
+    logicalType: string
+    physicalType: string
+    required: true
+  - name: company
+    logicalType: string
+    physicalType: string
+  - name: location
+    logicalType: string
+    physicalType: string
+  - name: url
+    logicalType: string
+    physicalType: string
+  - name: language
+    logicalType: string
+    physicalType: string
+  - name: posted_at
+    logicalType: timestamp
+    physicalType: timestamp[us, tz=UTC]
+    required: true
+    description: Publication date from the source
+  - name: category
+    logicalType: string
+    physicalType: string
+    required: true
+    description: Category id from config/categories.yml
+    quality:
+    - metric: invalidValues
+      arguments:
+        validValues:
+        - ai_ml
+        - data
+        - finance
+        - hr
+        - it_ops_cloud
+        - other
+        - product_project
+        - qa_testing
+        - sales_marketing
+        - security
+        - software_development
+        - ux_design
+      mustBe: 0
+  - name: category_label
+    logicalType: string
+    physicalType: string
+  - name: category_confidence
+    logicalType: number
+    physicalType: double
+  - name: german_required
+    logicalType: string
+    physicalType: string
+    description: Does the ad require German?
+    quality:
+    - metric: invalidValues
+      arguments:
+        validValues:
+        - nice_to_have
+        - 'no'
+        - unknown
+        - 'yes'
+      mustBe: 0
+  - name: remote_mode
+    logicalType: string
+    physicalType: string
+    description: Remote, hybrid or onsite
+    quality:
+    - metric: invalidValues
+      arguments:
+        validValues:
+        - hybrid
+        - onsite
+        - remote
+        - unknown
+      mustBe: 0
+  - name: salary_min
+    logicalType: number
+    physicalType: double
+    description: Lowest stated amount, EUR
+  - name: salary_max
+    logicalType: number
+    physicalType: double
+  - name: salary_currency
+    logicalType: string
+    physicalType: string
+  - name: salary_period
+    logicalType: string
+    physicalType: string
+  - name: salary_text
+    logicalType: string
+    physicalType: string
+  - name: visa_sponsorship
+    logicalType: string
+    physicalType: string
+    description: Visa sponsorship mentioned
+    quality:
+    - metric: invalidValues
+      arguments:
+        validValues:
+        - 'no'
+        - unknown
+        - 'yes'
+      mustBe: 0
+  - name: contract_type
+    logicalType: string
+    physicalType: string
+    quality:
+    - metric: invalidValues
+      arguments:
+        validValues:
+        - apprenticeship
+        - fixed_term
+        - freelance
+        - internship
+        - permanent
+        - unknown
+        - working_student
+      mustBe: 0
+  - name: work_time
+    logicalType: string
+    physicalType: string
+    quality:
+    - metric: invalidValues
+      arguments:
+        validValues:
+        - full_or_part_time
+        - full_time
+        - part_time
+        - unknown
+      mustBe: 0
+  - name: seniority
+    logicalType: string
+    physicalType: string
+    quality:
+    - metric: invalidValues
+      arguments:
+        validValues:
+        - junior
+        - lead
+        - mid
+        - senior
+        - unknown
+      mustBe: 0
+  - name: skills
+    logicalType: array
+    physicalType: 'list<item: string>'
+  - name: summary
+    logicalType: string
+    physicalType: string
+  - name: field_sources
+    logicalType: string
+    physicalType: string
+    description: 'JSON: where each field came from (source, rule, embed, llm, none)'
+  - name: deep_enriched
+    logicalType: boolean
+    physicalType: bool
+  - name: enrich_model
+    logicalType: string
+    physicalType: string
+  - name: prompt_version
+    logicalType: string
+    physicalType: string
+  - name: enriched_at
+    logicalType: timestamp
+    physicalType: timestamp[us, tz=UTC]
+team:
+  name: jobradar maintainers

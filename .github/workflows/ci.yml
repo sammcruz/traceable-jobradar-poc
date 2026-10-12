@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"   # weekly: catches dependency drift that breaks the exit test
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      JOBRADAR_PROVIDER: fake        # no models in CI
+      JOBRADAR_DATA_DIR: ./data-ci
+      OPENLINEAGE_URL: ""
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src tests app
+      - name: Unit and pipeline tests
+        run: pytest -q
+      - name: Run the pipeline on sample data
+        run: jobradar demo
+      - name: Data contracts
+        run: jobradar check-contracts
+      - name: Exit test (DuckDB's own Delta reader)
+        run: jobradar exit-test

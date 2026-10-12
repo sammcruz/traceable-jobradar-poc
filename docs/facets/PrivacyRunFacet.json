@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/PrivacyRunFacet.json",
+  "title": "PrivacyRunFacet",
+  "description": "Personal data removed at ingest.",
+  "$defs": {
+    "PrivacyRunFacet": {
+      "allOf": [
+        {
+          "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunFacet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "redactions": {
+              "type": "integer"
+            },
+            "personal_fields_dropped": {
+              "type": "boolean"
+            },
+            "method": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "jobradar_privacy": {
+      "$ref": "#/$defs/PrivacyRunFacet"
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/ModelRunFacet.json",
+  "title": "ModelRunFacet",
+  "description": "Which model produced this run's output, where it ran, and with which prompt version.",
+  "$defs": {
+    "ModelRunFacet": {
+      "allOf": [
+        {
+          "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunFacet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "purpose": {
+              "type": "string",
+              "description": "embedding, extraction, cv_profile or rerank"
+            },
+            "provider": {
+              "type": "string"
+            },
+            "model": {
+              "type": "string"
+            },
+            "endpoint_host": {
+              "type": "string"
+            },
+            "runs_locally": {
+              "type": "boolean",
+              "description": "True when the endpoint is localhost: data did not leave the machine"
+            },
+            "prompt_version": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "jobradar_model": {
+      "$ref": "#/$defs/ModelRunFacet"
+    }
+  }
+}

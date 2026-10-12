@@ -1,0 +1,52 @@
+# Marquez: the OpenLineage reference implementation (lineage API + web UI).
+# Start: docker compose up -d   ->  UI at http://localhost:3000, API at http://localhost:5000
+# Ollama is NOT in here on purpose: on a Mac it runs natively to use the GPU (see README).
+# Based on the Marquez project's own compose files; pin MARQUEZ_TAG to the release you test with.
+
+services:
+  marquez-db:
+    image: postgres:14
+    environment:
+      POSTGRES_USER: marquez
+      POSTGRES_PASSWORD: marquez
+      POSTGRES_DB: marquez
+    volumes:
+      - marquez-db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U marquez"]
+      interval: 5s
+      retries: 20
+
+  api:
+    image: marquezproject/marquez:${MARQUEZ_TAG:-0.51.1}
+    environment:
+      MARQUEZ_PORT: 5000
+      MARQUEZ_ADMIN_PORT: 5001
+      POSTGRES_HOST: marquez-db
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: marquez
+      POSTGRES_USER: marquez
+      POSTGRES_PASSWORD: marquez
+      SEARCH_ENABLED: "false"
+    ports:
+      - "5000:5000"
+      - "5001:5001"
+    depends_on:
+      marquez-db:
+        condition: service_healthy
+    restart: on-failure
+
+  web:
+    image: marquezproject/marquez-web:${MARQUEZ_TAG:-0.51.1}
+    environment:
+      MARQUEZ_HOST: api
+      MARQUEZ_PORT: 5000
+      WEB_PORT: 3000
+      REACT_APP_ADVANCED_SEARCH: "false"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  marquez-db:
