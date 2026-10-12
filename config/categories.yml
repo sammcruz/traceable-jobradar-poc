@@ -1,0 +1,66 @@
+# Job categories. Used three ways, in this order:
+#   1. keywords: matched against the job title (fast, explainable)
+#   2. description: embedded once and compared with each job (zero-shot classifier)
+#   3. the LLM, only when 1 and 2 disagree or are unsure (optional, slower)
+# Edit freely: ids are stable keys, labels are what the UI shows.
+
+categories:
+  - id: data
+    label: Data
+    description: Data engineering, data analytics, business intelligence, data platforms, ETL pipelines, data warehouses, lakehouses, SQL, Spark, dbt, reporting.
+    keywords: [data engineer, data analyst, data scientist, analytics, business intelligence, " bi ", bi developer, etl, data warehouse, datenanalyst, data architect, dateningenieur, power bi, databricks]
+
+  - id: ai_ml
+    label: AI & machine learning
+    description: Machine learning, artificial intelligence, deep learning, large language models, MLOps, computer vision, NLP research and engineering.
+    keywords: [machine learning, " ml ", " ai ", ki-, künstliche intelligenz, artificial intelligence, llm, mlops, deep learning, nlp, computer vision, genai]
+
+  - id: software_development
+    label: Software development
+    description: Software engineering, backend, frontend, full-stack, mobile and embedded development, programming in Java, Python, JavaScript, C#, Go.
+    keywords: [software, developer, entwickler, engineer, backend, frontend, full stack, fullstack, programmer, programmierer, mobile, ios, android, java, python, javascript, typescript, react, .net, golang, embedded]
+
+  - id: it_ops_cloud
+    label: IT ops & cloud
+    description: DevOps, cloud infrastructure, system administration, site reliability, networks, Kubernetes, IT support and service desk.
+    keywords: [devops, cloud, sre, site reliability, system administrator, systemadministrator, administrator, kubernetes, infrastructure, netzwerk, network, it support, it-support, service desk, helpdesk, fachinformatiker, platform engineer]
+
+  - id: security
+    label: Security
+    description: Information security, cyber security, penetration testing, security operations, identity and access management, compliance of IT systems.
+    keywords: [security, sicherheit, cyber, pentest, soc analyst, iam, informationssicherheit]
+
+  - id: ux_design
+    label: UX & design
+    description: User experience and user interface design, product design, UX research, graphic and visual design, interaction design.
+    keywords: [ux, ui designer, ui/ux, user experience, product designer, designer, grafik, graphic, mediengestalter, interaction design]
+
+  - id: product_project
+    label: Product & project
+    description: Product management, product ownership, project management, scrum master, agile coaching, IT project leadership.
+    keywords: [product manager, product owner, produktmanager, project manager, projektmanager, projektleiter, scrum master, agile coach]
+
+  - id: qa_testing
+    label: QA & testing
+    description: Software quality assurance, test automation, manual testing, test management.
+    keywords: [qa, quality assurance, test engineer, tester, testautomatisierung, test automation, softwaretest]
+
+  - id: hr
+    label: HR & recruiting
+    description: Human resources, recruiting, talent acquisition, people operations, payroll, learning and development.
+    keywords: [hr, human resources, recruiter, recruiting, talent acquisition, personal, people, payroll, lohnbuchhaltung, personalreferent]
+
+  - id: finance
+    label: Finance & accounting
+    description: Finance, accounting, controlling, bookkeeping, tax, audit, treasury.
+    keywords: [finance, accounting, accountant, buchhalter, buchhaltung, controller, controlling, steuer, tax, audit, treasury, finanz]
+
+  - id: sales_marketing
+    label: Sales & marketing
+    description: Sales, account management, business development, marketing, online marketing, SEO, content, customer success.
+    keywords: [sales, vertrieb, account manager, business development, marketing, seo, content, customer success, kundenberater]
+
+  - id: other
+    label: Other
+    description: Any other job outside technology, data, HR, finance, sales and marketing.
+    keywords: []

@@ -1,0 +1,47 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "jobradar"
+version = "0.1.0"
+description = "Traceable AI data pipeline POC: EU job ads, local models, OpenLineage, Delta Lake"
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.11"
+authors = [{ name = "Samantha Cruz" }]
+dependencies = [
+  "requests>=2.31",
+  "pydantic>=2.6",
+  "pyyaml>=6",
+  "pyarrow>=15",
+  "deltalake>=0.25",
+  "duckdb>=1.1",
+  "lancedb>=0.20",
+  "openai>=1.40",
+  "typer>=0.12",
+  "rich>=13",
+  "pypdf>=4",
+]
+
+[project.optional-dependencies]
+cv = ["docling>=2.0"]
+app = ["streamlit>=1.38", "pandas>=2"]
+dev = ["pytest>=8", "ruff>=0.6", "pandas>=2"]
+
+[project.scripts]
+jobradar = "jobradar.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["B008"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

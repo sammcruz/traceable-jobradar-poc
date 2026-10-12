@@ -1,0 +1,46 @@
+# What to ingest. Only ads published in the last `days` are kept.
+days: 7
+
+arbeitnow:
+  enabled: true
+  # Public job-board API, no key. Pages are newest first; we stop at the first ad older than `days`.
+  url: https://www.arbeitnow.com/api/job-board-api
+  max_pages: 40
+
+bundesagentur:
+  enabled: true
+  # Public job-search API of the German Federal Employment Agency (Bundesagentur für Arbeit).
+  # The fixed key below is the documented public client id, not a secret.
+  url: https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs
+  details_url: https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobdetails
+  api_key: jobboerse-jobsuche
+  page_size: 50
+  max_pages_per_keyword: 2
+  fetch_details: true
+  # The agency lists ~1M ads; we only search these keywords. Tech-heavy on purpose, plus HR, finance, sales.
+  keywords:
+    - data engineer
+    - data analyst
+    - data scientist
+    - business intelligence
+    - machine learning
+    - künstliche intelligenz
+    - softwareentwickler
+    - software engineer
+    - frontend
+    - backend
+    - devops
+    - cloud
+    - systemadministrator
+    - it-security
+    - ux designer
+    - product owner
+    - scrum master
+    - testautomatisierung
+    - fachinformatiker
+    - recruiter
+    - personalreferent
+    - controller
+    - buchhalter
+    - vertrieb it
+    - online marketing

@@ -1,0 +1,20 @@
+# Local data never goes to Git: job ads, your CV, vectors, lineage logs
+data/
+cv/
+*.pdf
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Editors / OS
+.DS_Store
+.idea/
+.vscode/
