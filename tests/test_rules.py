@@ -63,3 +63,24 @@ def test_scrub_payload_drops_personal_keys():
 
 def test_html_to_text_lists():
     assert html_to_text("<p>Hi</p><ul><li>Python</li></ul>") == "Hi\n\n- Python"
+
+
+def test_bundesagentur_v6_item():
+    from jobradar.sources.bundesagentur import normalise, ref_number
+
+    item = {  # shape of the v6 search API, as returned on 2026-10-12 (values shortened)
+        "stellenangebotsTitel": "Data Engineer (m/w/d)", "arbeitszeitVollzeit": True,
+        "verguetungsangabe": "JAHRESGEHALT", "gehaltsspanneVon": 54000.0, "gehaltsspanneBis": 75000.0,
+        "vertragsdauer": "KEINE_ANGABE",
+        "stellenlokationen": [{"adresse": {"plz": "49080", "ort": "Osnabrück", "region": "NIEDERSACHSEN",
+                                           "land": "DEUTSCHLAND"}}],
+        "datumErsteVeroeffentlichung": "2026-10-05", "hauptberuf": "Data Engineer", "firma": "Beispiel GmbH",
+        "referenznummer": "12265-350002_JB5264323-S", "alleBerufe": ["Data Engineer"],
+    }
+    ad = normalise(item, None)
+    assert ref_number(item) == "12265-350002_JB5264323-S"
+    assert ad["title"] == "Data Engineer (m/w/d)" and ad["company"] == "Beispiel GmbH"
+    assert ad["location"] == "Osnabrück, Niedersachsen" and ad["country"] == "DE"
+    assert ad["job_types"] == ["VOLLZEIT"] and ad["posted_at"].year == 2026
+    s = rules.salary(ad["description_raw"])
+    assert (s["salary_min"], s["salary_max"], s["salary_period"]) == (54000, 75000, "year")

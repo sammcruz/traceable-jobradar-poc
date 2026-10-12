@@ -2,8 +2,11 @@
 
 Public API; the `X-API-Key: jobboerse-jobsuche` header is the documented public client id.
 Search:  GET {url}?was=<keyword>&veroeffentlichtseit=<days>&size=..&page=..&angebotsart=1
-         -> {"stellenangebote": [{"refnr", "titel", "beruf", "arbeitgeber",
-              "arbeitsort": {"ort", "region", "land", ...}, "aktuelleVeroeffentlichungsdatum", ...}]}
+         v6 -> {"ergebnisliste": [{"referenznummer", "stellenangebotsTitel", "hauptberuf", "firma",
+                 "stellenlokationen": [{"adresse": {"ort", "region", "land"}}], "datumErsteVeroeffentlichung",
+                 "gehaltsspanneVon", "gehaltsspanneBis", "verguetungsangabe", "arbeitszeitVollzeit", ...}]}
+         v4 -> {"stellenangebote": [{"refnr", "titel", "beruf", "arbeitgeber", "arbeitsort", ...}]}
+         Both shapes are read.
 Details: GET {details_url}/<base64(refnr)> -> a description field (name varies by API version,
          read defensively). If details fail, title + occupation are used as the description.
 
@@ -35,38 +38,74 @@ def _parse_date(value: str | None) -> datetime | None:
         return None
 
 
+PERIODS = {"JAHRESGEHALT": "pro Jahr", "MONATSGEHALT": "pro Monat", "STUNDENLOHN": "pro Stunde"}
+
+
+def ref_number(item: dict) -> str | None:
+    """v4 calls it refnr, v6 referenznummer."""
+    value = item.get("referenznummer") or item.get("refnr")
+    return str(value) if value else None
+
+
+def _salary_line(item: dict) -> str:
+    """v6 gives the salary range as structured fields; render it as text the salary rule understands."""
+    lo, hi = item.get("gehaltsspanneVon"), item.get("gehaltsspanneBis")
+    if not lo and not hi:
+        return ""
+    fmt = lambda v: f"{int(v):,}".replace(",", ".")  # noqa: E731 - German thousands separator
+    amount = f"{fmt(lo)} - {fmt(hi)} €" if lo and hi and lo != hi else f"{fmt(lo or hi)} €"
+    return f"Gehalt: {amount} {PERIODS.get(item.get('verguetungsangabe'), '')}".strip()
+
+
 def normalise(item: dict, details: dict | None) -> dict:
-    refnr = str(item.get("refnr"))
-    place = item.get("arbeitsort") or {}
+    refnr = ref_number(item) or ""
     details = details or {}
+    # Location: v4 "arbeitsort", v6 first entry of "stellenlokationen[].adresse"
+    place = item.get("arbeitsort") or ((item.get("stellenlokationen") or [{}])[0].get("adresse") or {})
+    title = (item.get("stellenangebotsTitel") or item.get("titel") or item.get("hauptberuf")
+             or item.get("beruf") or "").strip()
+    occupation = item.get("hauptberuf") or item.get("beruf") or ""
+
     description = next((details[k] for k in DESCRIPTION_KEYS if details.get(k)), "")
     if not description:
-        description = f"{item.get('titel', '')}\n{item.get('beruf', '')}"
+        description = f"{title}\n{occupation}"
+    salary = _salary_line(item)
+    if salary:
+        description = f"{description}\n{salary}"
+
     job_types = []
     for key in ("arbeitszeitmodelle", "befristung", "vertragsdauer"):
-        val = details.get(key)
+        val = details.get(key) or item.get(key)
         if isinstance(val, list):
             job_types += [str(v) for v in val]
-        elif val:
+        elif val and val != "KEINE_ANGABE":
             job_types.append(str(val))
+    if item.get("arbeitszeitVollzeit") is True:
+        job_types.append("VOLLZEIT")
+    if item.get("arbeitszeitTeilzeit") is True:
+        job_types.append("TEILZEIT")
+
+    land = str(place.get("land") or "Deutschland")
     return {
         "source": SOURCE,
         "source_id": refnr,
-        "title": (item.get("titel") or item.get("beruf") or "").strip(),
-        "company": (item.get("arbeitgeber") or "").strip(),
-        "location": ", ".join(x for x in (place.get("ort"), place.get("region")) if x),
-        "country": "DE" if (place.get("land") or "Deutschland") == "Deutschland" else str(place.get("land")),
+        "title": title,
+        "company": (item.get("firma") or item.get("arbeitgeber") or "").strip(),
+        "location": ", ".join(x.title() if x.isupper() else x for x in (place.get("ort"), place.get("region")) if x),
+        "country": "DE" if land.upper() == "DEUTSCHLAND" else land,
         "remote_source": None,
         "visa_source": None,
         "job_types": job_types,
-        "tags": [str(item["beruf"])] if item.get("beruf") else [],
+        "tags": [str(b) for b in (item.get("alleBerufe") or ([occupation] if occupation else []))],
         "description_raw": html_to_text(description),
         "url": item.get("externeUrl") or f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{refnr}",
-        "posted_at": _parse_date(item.get("aktuelleVeroeffentlichungsdatum")),
+        "posted_at": _parse_date(item.get("datumErsteVeroeffentlichung")
+                                 or (item.get("veroeffentlichungszeitraum") or {}).get("von")
+                                 or item.get("aktuelleVeroeffentlichungsdatum")),
     }
 
 
-ITEM_KEYS = ("stellenangebote", "jobs", "items", "results", "content")
+ITEM_KEYS = ("ergebnisliste", "stellenangebote", "jobs", "items", "results", "content")
 
 
 def _items(payload: dict) -> list[dict]:
@@ -109,8 +148,8 @@ def fetch(config: dict, days: int) -> tuple[list[dict], list[dict]]:
             first_payload = first_payload or payload
             items = _items(payload)
             for item in items:
-                if item.get("refnr"):
-                    seen.setdefault(str(item["refnr"]), item)
+                if ref_number(item):
+                    seen.setdefault(ref_number(item), item)
             if len(items) < int(config.get("page_size", 50)):
                 break
 
@@ -124,9 +163,10 @@ def fetch(config: dict, days: int) -> tuple[list[dict], list[dict]]:
         raise RuntimeError(f"Bundesagentur answered from {url} but no ads were parsed. Sample saved to {debug}")
 
     ads, raw = [], []
+    detail_failures, detail_successes = 0, 0
     for refnr, item in seen.items():
         details = None
-        if config.get("fetch_details", True):
+        if config.get("fetch_details", True) and not (detail_failures >= 5 and detail_successes == 0):
             encoded = base64.b64encode(refnr.encode()).decode()
             for details_url in config.get("details_urls") or [config["details_url"]]:
                 try:
@@ -134,6 +174,10 @@ def fetch(config: dict, days: int) -> tuple[list[dict], list[dict]]:
                     break
                 except requests.RequestException:
                     details = None
+            if details:
+                detail_successes += 1
+            else:
+                detail_failures += 1
         ads.append(normalise(item, details))
         raw.append({"source": SOURCE, "source_id": refnr, "payload": {"search": item, "details": details}})
     return ads, raw
