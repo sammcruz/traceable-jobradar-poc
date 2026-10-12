@@ -185,8 +185,10 @@ with tab_lineage:
     events = [e for e in lineage.read_events() if e["eventType"] != "START"]
     st.caption(f"{len(events)} completed or failed runs in {settings.lineage_log}")
     if settings.openlineage_url:
-        st.markdown(f"Graph view in Marquez: [{settings.openlineage_url.replace(':5000', ':3000')}]"
-                    f"({settings.openlineage_url.replace(':5000', ':3000')})")
+        from urllib.parse import urlparse
+
+        ui = f"http://{urlparse(settings.openlineage_url).hostname}:3000"
+        st.markdown(f"Graph view in Marquez: [{ui}]({ui})")
     rows = [{
         "time": e["eventTime"][:19].replace("T", " "), "job": e["job"]["name"], "status": e["eventType"],
         "inputs": ", ".join(d["name"] for d in e.get("inputs", [])),

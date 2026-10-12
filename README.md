@@ -63,7 +63,7 @@ make demo
 # 2. Real data with local models
 brew install ollama && ollama serve &          # or install the Ollama app
 make models                                    # qwen3:8b + bge-m3 (~6 GB)
-make lineage-up                                # Marquez UI at http://localhost:3000
+make lineage-up                                # Marquez UI at http://localhost:3000 (API on :5050)
 make run                                       # ingest last 7 days, enrich, LLM on tech ads
 jobradar cv load ~/Documents/my-cv.pdf
 jobradar match --no-german --remote remote --remote hybrid
