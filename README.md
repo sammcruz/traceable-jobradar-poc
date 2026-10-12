@@ -49,11 +49,13 @@ log from your CV hash to every dataset derived from it.
 
 ## Quick start (macOS, Apple Silicon)
 
-Requirements: Python 3.11+, [Ollama](https://ollama.com), Docker Desktop (only for the Marquez UI).
+Requirements: Python 3.11+ (macOS ships 3.9: `brew install python@3.12`), [Ollama](https://ollama.com),
+Docker Desktop (only for the Marquez UI). `make install` finds the newest Python 3.11+ on your PATH,
+or use `make install PYTHON=/path/to/python3.12`.
 
 ```bash
 git clone https://github.com/sammcruz/traceable-rag-poc && cd traceable-rag-poc
-make install && source .venv/bin/activate     # creates .venv and .env
+make install && source .venv/bin/activate     # creates .venv (Python 3.11+) and .env
 
 # 1. See it work offline first: sample data, fake models, no network
 make demo
