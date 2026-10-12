@@ -11,7 +11,15 @@ bundesagentur:
   enabled: true
   # Public job-search API of the German Federal Employment Agency (Bundesagentur für Arbeit).
   # The fixed key below is the documented public client id, not a secret.
-  url: https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs
+  # Tried in order; the first that answers is used. The agency has moved versions before (v4 -> v6).
+  search_urls:
+    - https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs
+    - https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/app/jobs
+    - https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobs
+  url: https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v6/jobs
+  details_urls:
+    - https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobdetails
+    - https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v3/jobdetails
   details_url: https://rest.arbeitsagentur.de/jobboerse/jobsuche-service/pc/v4/jobdetails
   api_key: jobboerse-jobsuche
   page_size: 50

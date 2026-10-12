@@ -41,8 +41,12 @@ def ingest(
         fetched = None
         if from_file:
             fetched = load_sample(from_file, s)
-        with console.status(f"Fetching {s}…"):
-            result = ing.ingest(s, fetched=fetched, days=days)
+        try:
+            with console.status(f"Fetching {s}…"):
+                result = ing.ingest(s, fetched=fetched, days=days)
+        except Exception as exc:  # one source down must not stop the others; lineage records the FAIL
+            console.print(f"[red]✗ {s} skipped:[/] {exc}")
+            continue
         console.print(f"[green]✓[/] {s}: {result['ads']} ads (inserted {result['inserted']}, "
                       f"updated {result['updated']}) → silver.jobs v{result['version']}")
     deleted = ing.apply_retention(days)

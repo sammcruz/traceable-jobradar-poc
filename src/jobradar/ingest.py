@@ -20,7 +20,7 @@ from .sources import arbeitnow, bundesagentur
 
 SOURCES: dict[str, tuple[Callable, str, str]] = {
     "arbeitnow": (arbeitnow.fetch, arbeitnow.NAMESPACE, "/api/job-board-api"),
-    "bundesagentur": (bundesagentur.fetch, bundesagentur.NAMESPACE, "/jobboerse/jobsuche-service/pc/v4/jobs"),
+    "bundesagentur": (bundesagentur.fetch, bundesagentur.NAMESPACE, "/jobboerse/jobsuche-service/jobs"),
 }
 
 TS = pa.timestamp("us", tz="UTC")
