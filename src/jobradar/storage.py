@@ -50,6 +50,12 @@ def upsert(name: str, data: pa.Table, key: str) -> dict:
     """Insert new rows, update changed rows (by key). Creates the table on first write."""
     if data.num_rows == 0:
         return {"inserted": 0, "updated": 0, "version": version(name)}
+    # Sources can return the same record twice (e.g. pages shifting while we read them).
+    # Delta MERGE rejects duplicate source keys, so keep the last occurrence of each key.
+    keys = data.column(key).to_pylist()
+    last = {k: i for i, k in enumerate(keys)}
+    if len(last) < len(keys):
+        data = data.take(sorted(last.values()))
     if not exists(name):
         overwrite(name, data)
         return {"inserted": data.num_rows, "updated": 0, "version": version(name)}

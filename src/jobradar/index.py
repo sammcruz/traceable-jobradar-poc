@@ -32,8 +32,11 @@ def job_text(row: dict) -> str:
     return f"{row['title']}\n{row.get('company') or ''}\n{(row.get('description') or '')[:2500]}"
 
 
-def ensure_job_vectors(rows: list[dict]) -> tuple[dict[str, list[float]], int]:
-    """Return {job_id: vector} for rows, embedding only new or changed ads. Second value: newly embedded."""
+def ensure_job_vectors(rows: list[dict], progress=None, chunk: int = 64) -> tuple[dict[str, list[float]], int]:
+    """Return {job_id: vector} for rows, embedding only new or changed ads. Second value: newly embedded.
+
+    Embeds and saves in chunks: progress is reported after each chunk, and an interrupted run
+    keeps everything embedded so far (the next run continues where this one stopped)."""
     model = get_settings().embed_model if get_settings().provider != "fake" else "fake-hash-256"
     table = _open(JOBS)
     cached: dict[str, tuple[str, list[float]]] = {}
@@ -43,20 +46,25 @@ def ensure_job_vectors(rows: list[dict]) -> tuple[dict[str, list[float]], int]:
                 cached[r["job_id"]] = (r["content_hash"], r["vector"])
 
     todo = [r for r in rows if cached.get(r["job_id"], ("", None))[0] != r["content_hash"]]
-    vectors = models.embed([job_text(r) for r in todo]) if todo else []
-    if todo:
+    if progress:
+        progress(0, len(todo))
+    for start in range(0, len(todo), chunk):
+        part = todo[start: start + chunk]
+        vectors = models.embed([job_text(r) for r in part])
         new = pa.Table.from_pylist([
             {"job_id": r["job_id"], "content_hash": r["content_hash"], "model": model, "vector": v}
-            for r, v in zip(todo, vectors, strict=True)
+            for r, v in zip(part, vectors, strict=True)
         ])
         if table is None:
             table = _db().create_table(JOBS, data=new)
         else:
-            ids = ", ".join("'" + r["job_id"].replace("'", "''") + "'" for r in todo)
+            ids = ", ".join("'" + r["job_id"].replace("'", "''") + "'" for r in part)
             table.delete(f"job_id IN ({ids})")
             table.add(new)
-        for r, v in zip(todo, vectors, strict=True):
+        for r, v in zip(part, vectors, strict=True):
             cached[r["job_id"]] = (r["content_hash"], v)
+        if progress:
+            progress(min(start + chunk, len(todo)), len(todo))
     return {r["job_id"]: cached[r["job_id"]][1] for r in rows if r["job_id"] in cached}, len(todo)
 
 

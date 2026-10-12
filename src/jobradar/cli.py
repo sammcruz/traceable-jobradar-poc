@@ -81,8 +81,10 @@ def enrich(
     from .enrich import run_enrich
 
     with Progress(console=console) as progress:
+        embed_task = progress.add_task("Embedding new ads", total=None)
         task = progress.add_task("Enriching", total=None)
-        result = run_enrich(deep=deep, categories=category, limit=limit, progress=_progress_cb(progress, task))
+        result = run_enrich(deep=deep, categories=category, limit=limit, progress=_progress_cb(progress, task),
+                            embed_progress=_progress_cb(progress, embed_task))
     console.print(f"[green]✓[/] {result['jobs']} jobs enriched; {result['newly_embedded']} newly embedded; "
                   f"{result['deep_enriched_now']} sent to the LLM")
 

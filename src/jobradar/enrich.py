@@ -165,7 +165,7 @@ def deep_enrich(out: dict, description: str) -> dict:
 # ---------- step ----------
 
 def run_enrich(deep: bool = False, categories: list[str] | None = None, limit: int | None = None,
-               progress=None) -> dict:
+               progress=None, embed_progress=None) -> dict:
     settings = get_settings()
     if not storage.exists("silver.jobs"):
         raise RuntimeError("No silver.jobs table yet. Run `jobradar ingest` first.")
@@ -181,7 +181,7 @@ def run_enrich(deep: bool = False, categories: list[str] | None = None, limit: i
     with lineage.run("enrich.jobs", "Classify job ads and extract German, remote, salary, visa, contract, "
                                     "seniority and skills; LLM fills gaps when --deep") as run:
         run.inputs = [lineage.lake_dataset("silver.jobs")]
-        vectors, newly_embedded = index.ensure_job_vectors(rows)
+        vectors, newly_embedded = index.ensure_job_vectors(rows, progress=embed_progress)
         cat_vectors = _category_vectors()
         run.inputs.append(index.vectors_dataset())
 

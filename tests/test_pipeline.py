@@ -69,3 +69,24 @@ def test_tables_are_plain_delta(pipeline):
     con.register("jobs", storage.read("gold.jobs_enriched"))
     assert con.execute("SELECT count(*) FROM jobs").fetchone()[0] == 15
     assert storage.read("lineage.raw_events").num_rows > 0
+
+
+def test_upsert_tolerates_duplicate_keys():
+    import pyarrow as pa
+
+    storage.upsert("bronze.dups", pa.table({"raw_id": ["a", "b"], "v": [1, 2]}), "raw_id")
+    result = storage.upsert("bronze.dups", pa.table({"raw_id": ["a", "a", "c"], "v": [3, 4, 5]}), "raw_id")
+    rows = {r["raw_id"]: r["v"] for r in storage.read("bronze.dups").to_pylist()}
+    assert rows == {"a": 4, "b": 2, "c": 5} and result["inserted"] == 1
+
+
+def test_embedding_reports_progress_and_resumes():
+    from jobradar import index
+
+    rows = [{"job_id": f"j{i}", "content_hash": f"h{i}", "title": f"Data engineer {i}", "description": "SQL"}
+            for i in range(10)]
+    seen = []
+    _, n = index.ensure_job_vectors(rows[:4], progress=lambda d, t: seen.append((d, t)), chunk=3)
+    assert n == 4 and seen[-1] == (4, 4) and (3, 4) in seen
+    _, n = index.ensure_job_vectors(rows)  # an interrupted run continues: only the 6 missing are embedded
+    assert n == 6
