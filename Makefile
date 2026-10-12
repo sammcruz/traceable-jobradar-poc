@@ -35,7 +35,7 @@ lineage-down:
 run:                ## Real data: fetch last week's ads, enrich, deep-enrich tech ads with the LLM
 	$(BIN)/jobradar ingest
 	$(BIN)/jobradar enrich
-	$(BIN)/jobradar enrich --deep -c data -c ai_ml -c software_development -c it_ops_cloud --limit 200
+	$(BIN)/jobradar enrich --deep -c data -c ai_ml -c software_development -c it_ops_cloud --limit 50
 	$(BIN)/jobradar stats
 
 demo:               ## Offline: sample data and fake models, no network needed
