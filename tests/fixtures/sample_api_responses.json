@@ -1,0 +1,290 @@
+{
+ "_note": "Invented sample data in the shape of the Arbeitnow and Bundesagentur APIs. Not real ads.",
+ "arbeitnow": {
+  "data": [
+   {
+    "slug": "senior-data-engineer-lakehouse-1",
+    "company_name": "Nordlicht Analytics GmbH",
+    "title": "Senior Data Engineer (Lakehouse)",
+    "description": "<p>We build our lakehouse on <b>Delta Lake</b> and Spark with dbt and Airflow.</p><ul><li>5+ years with Python and SQL</li><li>Experience with Databricks or Microsoft Fabric</li></ul><p>Our team works in English. No German required.</p><p>Salary: 75.000 - 90.000 € per year.</p><p>Hybrid: 2 days in our Berlin office. Visa sponsorship and relocation support available.</p><p>Your contact: Jana Beispiel, jana.beispiel@nordlicht.example, +49 30 1234567</p>",
+    "remote": false,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/senior-data-engineer-lakehouse-1",
+    "tags": [
+     "Data",
+     "Engineering"
+    ],
+    "job_types": [
+     "full time"
+    ],
+    "location": "Berlin",
+    "created_at": 1791518400
+   },
+   {
+    "slug": "data-analyst-power-bi-2",
+    "company_name": "Fiktiv Handel AG",
+    "title": "Data Analyst (m/w/d) Power BI",
+    "description": "<p>Sie erstellen Berichte mit Power BI und SQL für unseren Vertrieb.</p><p>Sehr gute Deutschkenntnisse (C1) und gute Englischkenntnisse.</p><p>Unbefristete Festanstellung in Vollzeit, Homeoffice nach Absprache.</p>",
+    "remote": false,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/data-analyst-power-bi-2",
+    "tags": [],
+    "job_types": [
+     "Berufserfahren"
+    ],
+    "location": "Hamburg",
+    "created_at": 1791464400
+   },
+   {
+    "slug": "ml-engineer-remote-3",
+    "company_name": "Example AI Labs",
+    "title": "Machine Learning Engineer – LLM platform",
+    "description": "<p>Fully remote within the EU. You will ship RAG systems with PyTorch, LLM serving and MLOps.</p><p>German is a plus. €80k–100k.</p><p>We cannot sponsor visas; an EU work permit is required.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/ml-engineer-remote-3",
+    "tags": [
+     "AI"
+    ],
+    "job_types": [
+     "full time"
+    ],
+    "location": "Remote",
+    "created_at": 1791428400
+   },
+   {
+    "slug": "frontend-developer-react-4",
+    "company_name": "Pixelwerk UG",
+    "title": "Frontend Developer React/TypeScript",
+    "description": "<p>React, TypeScript and Figma handoff. English-speaking team in Munich, on-site 4 days a week.</p><p>Fixed-term contract for 18 months (befristet).</p>",
+    "remote": false,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/frontend-developer-react-4",
+    "tags": [],
+    "job_types": [
+     "full time"
+    ],
+    "location": "München",
+    "created_at": 1791392400
+   },
+   {
+    "slug": "werkstudent-data-5",
+    "company_name": "Beispiel Mobility GmbH",
+    "title": "Werkstudent (m/w/d) Data & Analytics",
+    "description": "<p>Als Werkstudent unterstützt du unser Data-Team mit Python und SQL, 20 Stunden pro Woche.</p><p>Gute Deutschkenntnisse sind von Vorteil. 16 € pro Stunde.</p>",
+    "remote": false,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/werkstudent-data-5",
+    "tags": [],
+    "job_types": [
+     "part time"
+    ],
+    "location": "Köln",
+    "created_at": 1791356400
+   },
+   {
+    "slug": "hr-business-partner-6",
+    "company_name": "Globex Example SE",
+    "title": "HR Business Partner (English speaking)",
+    "description": "<p>Partner with tech teams on recruiting, onboarding and people development.</p><p>Working language is English. Permanent contract, full-time, hybrid in Frankfurt.</p>",
+    "remote": false,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/hr-business-partner-6",
+    "tags": [],
+    "job_types": [
+     "full time"
+    ],
+    "location": "Frankfurt",
+    "created_at": 1791320400
+   },
+   {
+    "slug": "devops-engineer-kubernetes-7",
+    "company_name": "CloudFiktiv GmbH",
+    "title": "DevOps Engineer Kubernetes & Terraform",
+    "description": "<p>Run Kubernetes on AWS with Terraform and CI/CD. Blue Card holders welcome, we sponsor your visa.</p><p>60.000 - 75.000 EUR. Remote-first.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/devops-engineer-kubernetes-7",
+    "tags": [],
+    "job_types": [
+     "full time"
+    ],
+    "location": "Berlin",
+    "created_at": 1791284400
+   },
+   {
+    "slug": "ux-designer-8",
+    "company_name": "Formfabrik Example",
+    "title": "Senior UX Designer",
+    "description": "<p>Lead user research and Figma prototypes for our B2B SaaS. Fluent German required (C1).</p><p>Vor Ort in Leipzig.</p>",
+    "remote": false,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/ux-designer-8",
+    "tags": [],
+    "job_types": [
+     "full time"
+    ],
+    "location": "Leipzig",
+    "created_at": 1791248400
+   },
+   {
+    "slug": "freelance-data-architect-9",
+    "company_name": "Example Consulting",
+    "title": "Freelance Data Architect (Iceberg, Trino)",
+    "description": "<p>Freelance engagement, 6 months, 100% remote. Apache Iceberg, Trino, Kafka, data modeling.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/freelance-data-architect-9",
+    "tags": [],
+    "job_types": [
+     "freelance"
+    ],
+    "location": "Remote",
+    "created_at": 1791212400
+   },
+   {
+    "slug": "finance-controller-10",
+    "company_name": "Musterwerke AG",
+    "title": "Controller (m/w/d)",
+    "description": "<p>Monatsabschlüsse, Reporting mit Excel und SAP. Fließend Deutsch. Ansprechpartnerin: Frau Erika Mustermann, Tel. 0221 9876543</p>",
+    "remote": false,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/finance-controller-10",
+    "tags": [],
+    "job_types": [
+     "Berufserfahren"
+    ],
+    "location": "Stuttgart",
+    "created_at": 1791176400
+   }
+  ],
+  "links": {
+   "next": null
+  }
+ },
+ "arbeitnow_visa": {
+  "data": [
+   {
+    "slug": "senior-data-engineer-lakehouse-1",
+    "company_name": "Nordlicht Analytics GmbH",
+    "title": "Senior Data Engineer (Lakehouse)",
+    "description": "<p>We build our lakehouse on <b>Delta Lake</b> and Spark with dbt and Airflow.</p><ul><li>5+ years with Python and SQL</li><li>Experience with Databricks or Microsoft Fabric</li></ul><p>Our team works in English. No German required.</p><p>Salary: 75.000 - 90.000 € per year.</p><p>Hybrid: 2 days in our Berlin office. Visa sponsorship and relocation support available.</p><p>Your contact: Jana Beispiel, jana.beispiel@nordlicht.example, +49 30 1234567</p>",
+    "remote": false,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/senior-data-engineer-lakehouse-1",
+    "tags": [
+     "Data",
+     "Engineering"
+    ],
+    "job_types": [
+     "full time"
+    ],
+    "location": "Berlin",
+    "created_at": 1791518400
+   },
+   {
+    "slug": "devops-engineer-kubernetes-7",
+    "company_name": "CloudFiktiv GmbH",
+    "title": "DevOps Engineer Kubernetes & Terraform",
+    "description": "<p>Run Kubernetes on AWS with Terraform and CI/CD. Blue Card holders welcome, we sponsor your visa.</p><p>60.000 - 75.000 EUR. Remote-first.</p>",
+    "remote": true,
+    "url": "https://www.arbeitnow.com/jobs/companies/example/devops-engineer-kubernetes-7",
+    "tags": [],
+    "job_types": [
+     "full time"
+    ],
+    "location": "Berlin",
+    "created_at": 1791284400
+   }
+  ]
+ },
+ "bundesagentur": {
+  "stellenangebote": [
+   {
+    "refnr": "10000-1000000001-S",
+    "titel": "Softwareentwickler Java (m/w/d)",
+    "beruf": "Softwareentwickler/in",
+    "arbeitgeber": "Beispiel IT GmbH",
+    "arbeitsort": {
+     "ort": "München",
+     "region": "Bayern",
+     "land": "Deutschland",
+     "plz": "80331"
+    },
+    "aktuelleVeroeffentlichungsdatum": "2026-10-08",
+    "modifikationsTimestamp": "2026-10-08T08:00:00.000"
+   },
+   {
+    "refnr": "10000-1000000002-S",
+    "titel": "IT-Security Analyst (m/w/d)",
+    "beruf": "IT-Sicherheitsexperte/-expertin",
+    "arbeitgeber": "Sicher Example AG",
+    "arbeitsort": {
+     "ort": "Nürnberg",
+     "region": "Bayern",
+     "land": "Deutschland",
+     "plz": "80331"
+    },
+    "aktuelleVeroeffentlichungsdatum": "2026-10-07",
+    "modifikationsTimestamp": "2026-10-07T08:00:00.000"
+   },
+   {
+    "refnr": "10000-1000000003-S",
+    "titel": "Fachinformatiker Systemintegration (m/w/d)",
+    "beruf": "Fachinformatiker/in",
+    "arbeitgeber": "Kommune Musterstadt",
+    "arbeitsort": {
+     "ort": "Augsburg",
+     "region": "Bayern",
+     "land": "Deutschland",
+     "plz": "80331"
+    },
+    "aktuelleVeroeffentlichungsdatum": "2026-10-06",
+    "modifikationsTimestamp": "2026-10-06T08:00:00.000"
+   },
+   {
+    "refnr": "10000-1000000004-S",
+    "titel": "Product Owner Data Platform (m/w/d)",
+    "beruf": "Produktmanager/in",
+    "arbeitgeber": "Datenwerk Fiktiv",
+    "arbeitsort": {
+     "ort": "München",
+     "region": "Bayern",
+     "land": "Deutschland",
+     "plz": "80331"
+    },
+    "aktuelleVeroeffentlichungsdatum": "2026-10-09",
+    "modifikationsTimestamp": "2026-10-09T08:00:00.000"
+   },
+   {
+    "refnr": "10000-1000000005-S",
+    "titel": "Personalreferent (m/w/d)",
+    "beruf": "Personalreferent/in",
+    "arbeitgeber": "Musterbau GmbH",
+    "arbeitsort": {
+     "ort": "Regensburg",
+     "region": "Bayern",
+     "land": "Deutschland",
+     "plz": "80331"
+    },
+    "aktuelleVeroeffentlichungsdatum": "2026-10-05",
+    "modifikationsTimestamp": "2026-10-05T08:00:00.000"
+   }
+  ]
+ },
+ "bundesagentur_details": {
+  "10000-1000000001-S": {
+   "stellenangebotsBeschreibung": "Wir suchen Verstärkung für unser Team. Java, Spring, PostgreSQL und Docker. Fließende Deutschkenntnisse erforderlich. Unbefristet, Vollzeit, 2 Tage Homeoffice. Gehalt 58.000 bis 70.000 € jährlich. Ihr Kontakt: Max Beispiel, max.beispiel@example.de",
+   "arbeitszeitmodelle": [
+    "VOLLZEIT"
+   ],
+   "ansprechpartner": {
+    "name": "Max Beispiel"
+   }
+  },
+  "10000-1000000002-S": {
+   "stellenangebotsBeschreibung": "SIEM, Incident Response, ISO 27001. Deutsch und Englisch verhandlungssicher. Vor Ort in Nürnberg.",
+   "arbeitszeitmodelle": [
+    "VOLLZEIT"
+   ]
+  },
+  "10000-1000000003-S": {
+   "stellenangebotsBeschreibung": "Betreuung von Linux- und Windows-Servern, Netzwerk und Helpdesk. Befristet auf 2 Jahre, Teilzeit möglich."
+  },
+  "10000-1000000004-S": {
+   "stellenangebotsBeschreibung": "Als Product Owner verantworten Sie unsere Datenplattform (Databricks, Power BI). Scrum, Jira. Hybrides Arbeiten. Sehr gute Deutschkenntnisse."
+  },
+  "10000-1000000005-S": {
+   "stellenangebotsBeschreibung": "Recruiting, Lohnbuchhaltung und Mitarbeitergespräche. Teilzeit oder Vollzeit."
+  }
+ }
+}

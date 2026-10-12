@@ -18,7 +18,7 @@ categories:
   - id: software_development
     label: Software development
     description: Software engineering, backend, frontend, full-stack, mobile and embedded development, programming in Java, Python, JavaScript, C#, Go.
-    keywords: [software, developer, entwickler, engineer, backend, frontend, full stack, fullstack, programmer, programmierer, mobile, ios, android, java, python, javascript, typescript, react, .net, golang, embedded]
+    keywords: [software, developer, entwickler, backend, frontend, full stack, fullstack, programmer, programmierer, mobile, ios, android, java, python, javascript, typescript, react, .net, golang, embedded]
 
   - id: it_ops_cloud
     label: IT ops & cloud
