@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/ModelRunFacet.json",
+  "$id": "https://github.com/sammcruz/traceable-jobradar-poc/blob/main/docs/facets/ModelRunFacet.json",
   "title": "ModelRunFacet",
   "description": "Which model produced this run's output, where it ran, and with which prompt version.",
   "$defs": {

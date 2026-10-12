@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/ErasureRunFacet.json",
+  "$id": "https://github.com/sammcruz/traceable-jobradar-poc/blob/main/docs/facets/ErasureRunFacet.json",
   "title": "ErasureRunFacet",
   "description": "Record of an erasure: which CVs, which files and rows were removed.",
   "$defs": {

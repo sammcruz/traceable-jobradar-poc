@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/CvRunFacet.json",
+  "$id": "https://github.com/sammcruz/traceable-jobradar-poc/blob/main/docs/facets/CvRunFacet.json",
   "title": "CvRunFacet",
   "description": "Links a run to a CV by hash only. Used by erasure to find derived data.",
   "$defs": {

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/sammcruz/traceable-rag-poc/blob/main/docs/facets/RetentionRunFacet.json",
+  "$id": "https://github.com/sammcruz/traceable-jobradar-poc/blob/main/docs/facets/RetentionRunFacet.json",
   "title": "RetentionRunFacet",
   "description": "Retention policy applied: what was deleted and why.",
   "$defs": {
