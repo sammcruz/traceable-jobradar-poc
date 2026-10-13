@@ -3,7 +3,7 @@ PYTHON ?= $(shell for p in python3.13 python3.12 python3.11; do command -v $$p >
 VENV := .venv
 BIN := $(VENV)/bin
 
-.PHONY: install check-python models lineage-up lineage-down run demo app test lint clean
+.PHONY: install check-python models lineage-up lineage-down run demo app sql test lint clean
 
 check-python:
 	@if [ -z "$(PYTHON)" ]; then \
@@ -44,6 +44,9 @@ demo:               ## Offline: sample data and fake models, no network needed
 
 app:
 	$(BIN)/jobradar app
+
+sql:                ## SQL shell over the Delta tables (needs: brew install duckdb)
+	duckdb -init sql/views.sql
 
 test:
 	$(BIN)/pytest -q
