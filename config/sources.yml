@@ -6,6 +6,7 @@ arbeitnow:
   # Public job-board API, no key. Pages are newest first; we stop at the first ad older than `days`.
   url: https://www.arbeitnow.com/api/job-board-api
   max_pages: 40
+  request_pause: 1.0   # seconds between requests; the API answers 429 when asked too fast
 
 bundesagentur:
   enabled: true
@@ -25,6 +26,7 @@ bundesagentur:
   page_size: 50
   max_pages_per_keyword: 2
   fetch_details: true
+  request_pause: 0.5
   # The agency lists ~1M ads; we only search these keywords. Tech-heavy on purpose, plus HR, finance, sales.
   keywords:
     - data engineer

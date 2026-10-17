@@ -16,6 +16,7 @@ We never keep employer contact data (addresses, contact persons): only the field
 from __future__ import annotations
 
 import base64
+import warnings
 from datetime import UTC, date, datetime
 
 import requests
@@ -137,14 +138,20 @@ def fetch(config: dict, days: int) -> tuple[list[dict], list[dict]]:
     key = config.get("api_key", "jobboerse-jobsuche")
     headers = {"X-API-Key": key}
     url = _search_url(session, config, headers, days)
+    pause = float(config.get("request_pause", 0.5))
     seen: dict[str, dict] = {}
     first_payload = None
     for keyword in config.get("keywords", []):
         for page in range(1, int(config.get("max_pages_per_keyword", 2)) + 1):
-            payload = get_json(session, url, headers=headers, params={
-                "was": keyword, "veroeffentlichtseit": days, "angebotsart": 1,
-                "size": config.get("page_size", 50), "page": page,
-            }) or {}
+            try:
+                payload = get_json(session, url, headers=headers, pause=pause, params={
+                    "was": keyword, "veroeffentlichtseit": days, "angebotsart": 1,
+                    "size": config.get("page_size", 50), "page": page,
+                }) or {}
+            except requests.RequestException as exc:  # keep what we have, move to the next keyword
+                warnings.warn(f"bundesagentur: '{keyword}' page {page} failed ({exc}); skipping it",
+                              RuntimeWarning, stacklevel=2)
+                break
             first_payload = first_payload or payload
             items = _items(payload)
             for item in items:
@@ -170,7 +177,7 @@ def fetch(config: dict, days: int) -> tuple[list[dict], list[dict]]:
             encoded = base64.b64encode(refnr.encode()).decode()
             for details_url in config.get("details_urls") or [config["details_url"]]:
                 try:
-                    details = get_json(session, f"{details_url}/{encoded}", headers=headers, retries=1)
+                    details = get_json(session, f"{details_url}/{encoded}", headers=headers, retries=2, pause=pause)
                     break
                 except requests.RequestException:
                     details = None

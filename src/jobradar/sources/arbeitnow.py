@@ -9,7 +9,10 @@ The `visa_sponsorship=true` filter is documented; we use it to mark which ads of
 
 from __future__ import annotations
 
+import warnings
 from datetime import UTC, datetime, timedelta
+
+import requests
 
 from ..privacy import html_to_text
 from . import get_json, http_session
@@ -18,9 +21,15 @@ SOURCE = "arbeitnow"
 NAMESPACE = "https://www.arbeitnow.com"
 
 
-def _pages(session, url: str, params: dict, cutoff: datetime, max_pages: int):
+def _pages(session, url: str, params: dict, cutoff: datetime, max_pages: int, pause: float = 1.0):
+    """Yield pages newest first. If the API gives up (rate limit), keep what we already have."""
     for page in range(1, max_pages + 1):
-        payload = get_json(session, url, params={**params, "page": page}) or {}
+        try:
+            payload = get_json(session, url, params={**params, "page": page}, pause=pause) or {}
+        except requests.RequestException as exc:
+            warnings.warn(f"arbeitnow: stopped at page {page} ({exc}); keeping the {page - 1} pages fetched so far",
+                          RuntimeWarning, stacklevel=2)
+            return
         items = payload.get("data") or []
         if not items:
             return
@@ -58,13 +67,14 @@ def fetch(config: dict, days: int) -> tuple[list[dict], list[dict]]:
     session = http_session()
     cutoff = datetime.now(UTC) - timedelta(days=days)
     url, max_pages = config["url"], int(config.get("max_pages", 40))
+    pause = float(config.get("request_pause", 1.0))
 
     visa_slugs: set[str] = set()
-    for items in _pages(session, url, {"visa_sponsorship": "true"}, cutoff, max_pages):
+    for items in _pages(session, url, {"visa_sponsorship": "true"}, cutoff, max_pages, pause):
         visa_slugs.update(str(i.get("slug")) for i in items)
 
     ads, raw = [], []
-    for items in _pages(session, url, {}, cutoff, max_pages):
+    for items in _pages(session, url, {}, cutoff, max_pages, pause):
         for item in items:
             ad = normalise(item, visa_slugs)
             if ad["posted_at"] and ad["posted_at"] >= cutoff:
