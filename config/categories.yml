@@ -60,6 +60,16 @@ categories:
     description: Sales, account management, business development, marketing, online marketing, SEO, content, customer success.
     keywords: [sales, vertrieb, account manager, business development, marketing, seo, content, customer success, kundenberater]
 
+  - id: energy_climate
+    label: Energy & climate
+    description: Energy sector, renewable energy, green hydrogen, energy storage, sustainable fuels, energy markets and trading, climate, decarbonisation, sustainability and ESG.
+    keywords: [energy, energie, energiewirtschaft, hydrogen, wasserstoff, renewable, erneuerbare, solar, photovoltaik, windkraft, wind energy, offshore, energy storage, energiespeicher, klima, climate, sustainability, nachhaltigkeit, esg, decarbonisation, dekarbonisierung, e-fuel, sustainable aviation]
+
+  - id: policy_strategy
+    label: Policy, strategy & analysis
+    description: Public policy, public affairs, regulatory affairs, market research and market intelligence, strategy, economic analysis, trade compliance, stakeholder engagement, executive reporting.
+    keywords: [policy, public affairs, regulatory affairs, regulatory, regulierung, market analyst, marktanalyst, market research, marktforschung, market intelligence, strategy, strategie, economist, volkswirt, trade compliance, außenwirtschaft]
+
   - id: other
     label: Other
     description: Any other job outside technology, data, HR, finance, sales and marketing.
