@@ -41,7 +41,7 @@ Judge only skills, experience, seniority and language requirements. Ignore age, 
 @dataclass
 class Filters:
     categories: list[str] = field(default_factory=list)
-    exclude_german_required: bool = False
+    exclude_local_language_required: bool = False
     remote_modes: list[str] = field(default_factory=list)
     salary_only: bool = False
     visa_only: bool = False
@@ -60,8 +60,8 @@ def candidate_sql(f: Filters) -> str:
     where = ["1=1"]
     if f.categories:
         where.append(_in("category", f.categories))
-    if f.exclude_german_required:
-        where.append("german_required <> 'yes'")
+    if f.exclude_local_language_required:
+        where.append("local_language_required <> 'yes'")
     if f.remote_modes:
         where.append(_in("remote_mode", f.remote_modes))
     if f.salary_only:
@@ -92,8 +92,8 @@ def _fake_rerank(user: str) -> dict:
     missing = sorted(want - have)
     score = round(100 * len(overlap) / len(want)) if want else 30
     gaps = [f"Missing: {', '.join(missing[:4])}"] if missing else []
-    if "German required: yes" in user:
-        gaps.append("German required")
+    if "Local language required: yes" in user:
+        gaps.append("Local language required")
         score = max(0, score - 20)
     return {"score": score, "reasons": [f"Shared skills: {', '.join(overlap[:5])}"] if overlap else [],
             "gaps": gaps}
@@ -104,7 +104,8 @@ def _rerank(profile: dict, job: dict) -> dict:
         f"CANDIDATE\n{profile_text(profile)}\nYears of experience: {profile.get('years_experience')}\n"
         f"Seniority: {profile.get('seniority')}\n\n"
         f"JOB\nTitle: {job['title']}\nCompany: {job['company']}\nLocation: {job['location']}\n"
-        f"German required: {job['german_required']}; remote: {job['remote_mode']}; "
+        f"Local language required: {job['local_language_required']} ({job.get('local_language') or '?'}); "
+        f"remote: {job['remote_mode']}; "
         f"seniority: {job['seniority']}; contract: {job['contract_type']}\n"
         f"Skills in ad: {', '.join(job.get('skills') or [])}\n"
         f"Summary: {job.get('summary') or ''}\n\nAd text:\n{(job.get('description') or '')[:3000]}"

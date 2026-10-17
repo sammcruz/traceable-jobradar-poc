@@ -48,7 +48,7 @@ with st.sidebar:
     st.subheader("Filters")
     cats = st.multiselect("Category", options=list(LABELS), format_func=LABELS.get,
                           default=[c for c in ("data", "ai_ml") if c in LABELS])
-    no_german = st.toggle("Exclude ads that require German")
+    no_local_language = st.toggle("Exclude ads that require the local language")
     remote = st.multiselect("Work mode", ["remote", "hybrid", "onsite"], format_func=PRETTY.get)
     salary_only = st.toggle("Salary stated")
     visa_only = st.toggle("Visa sponsorship mentioned")
@@ -67,8 +67,8 @@ def apply_filters(df: pd.DataFrame) -> pd.DataFrame:
     m = pd.Series(True, index=df.index)
     if cats:
         m &= df["category"].isin(cats)
-    if no_german:
-        m &= df["german_required"] != "yes"
+    if no_local_language:
+        m &= df["local_language_required"] != "yes"
     if remote:
         m &= df["remote_mode"].isin(remote)
     if salary_only:
@@ -119,7 +119,7 @@ with tab_match:
 
     with right:
         if go:
-            filters = Filters(categories=cats, exclude_german_required=no_german, remote_modes=remote,
+            filters = Filters(categories=cats, exclude_local_language_required=no_local_language, remote_modes=remote,
                               salary_only=salary_only, visa_only=visa_only, contract_types=contract,
                               seniority=seniority)
             bar = st.progress(0.0, text="Matching…")
@@ -138,7 +138,7 @@ with tab_match:
                 head.markdown(f"**[{r['title']}]({r['url']})**  \n{r['company']} · {r['location']}")
                 score.metric("Fit", f"{r['score']}")
                 st.caption(" · ".join([LABELS.get(r["category"], r["category"]),
-                                       f"German: {PRETTY.get(r['german_required'], r['german_required'])}",
+                                       f"Local language: {PRETTY.get(r['local_language_required'], r['local_language_required'])}",
                                        PRETTY.get(r["remote_mode"], r["remote_mode"]),
                                        salary_label(r), f"visa: {r['visa_sponsorship']}",
                                        r["contract_type"], f"similarity {r['similarity']:.2f}"]))
@@ -155,7 +155,7 @@ with tab_explore:
     else:
         a, b, c, d = st.columns(4)
         a.metric("Ads (filtered)", len(view))
-        b.metric("German not required", int((view["german_required"] != "yes").sum()))
+        b.metric("Local language not required", int((view["local_language_required"] != "yes").sum()))
         c.metric("Salary stated", int(view["salary_min"].notna().sum()))
         d.metric("Visa sponsorship", int((view["visa_sponsorship"] == "yes").sum()))
 
@@ -167,7 +167,7 @@ with tab_explore:
             st.caption("Most requested skills: " + ", ".join(f"{s} ({n})" for s, n in skills.most_common(15)))
 
         table = view.assign(salary=view.apply(salary_label, axis=1))[
-            ["posted_at", "title", "company", "location", "category_label", "german_required", "remote_mode",
+            ["posted_at", "title", "company", "location", "category_label", "country", "local_language_required", "remote_mode",
              "salary", "visa_sponsorship", "contract_type", "seniority", "url"]
         ].sort_values("posted_at", ascending=False)
         st.dataframe(table, hide_index=True, width="stretch",

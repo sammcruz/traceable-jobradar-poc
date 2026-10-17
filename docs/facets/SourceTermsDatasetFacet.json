@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sammcruz/traceable-jobradar-poc/blob/main/docs/facets/SourceTermsDatasetFacet.json",
+  "title": "SourceTermsDatasetFacet",
+  "description": "Where an external dataset comes from and under which terms it is used. Attached to the input dataset of every ingest run.",
+  "$defs": {
+    "SourceTermsDatasetFacet": {
+      "allOf": [
+        {
+          "$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/DatasetFacet"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "source": { "type": "string", "description": "Source id, e.g. adzuna" },
+            "license": { "type": "string", "description": "Licence or terms the data is offered under, in words" },
+            "license_url": { "type": "string", "format": "uri" },
+            "attribution": { "type": "string", "description": "Credit line to show when ads are displayed" },
+            "attribution_required": { "type": ["boolean", "null"], "description": "null = not known yet" },
+            "terms_status": {
+              "type": "string",
+              "enum": ["verified", "to_verify"],
+              "description": "to_verify means no person has read the source's own terms yet"
+            },
+            "researched_on": { "type": "string", "format": "date" },
+            "storage_note": { "type": "string" }
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {
+    "jobradar_source_terms": {
+      "$ref": "#/$defs/SourceTermsDatasetFacet"
+    }
+  }
+}

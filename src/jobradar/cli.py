@@ -28,7 +28,8 @@ def _progress_cb(progress: Progress, task):
 
 @app.command()
 def ingest(
-    source: list[str] = typer.Option(None, "--source", "-s", help="arbeitnow and/or bundesagentur (default: both)"),
+    source: list[str] = typer.Option(None, "--source", "-s",
+                                     help="arbeitnow, bundesagentur, jobtech and/or adzuna (default: all enabled)"),
     days: int = typer.Option(None, help="Override the retention window from config/sources.yml"),
     from_file: Path = typer.Option(None, help="Use a saved JSON sample instead of calling the API (demos, tests)"),
 ):
@@ -36,7 +37,7 @@ def ingest(
     from . import ingest as ing
 
     settings = get_settings()
-    sources = source or [s for s in ("arbeitnow", "bundesagentur") if settings.sources.get(s, {}).get("enabled")]
+    sources = source or [s for s in ing.SOURCES if settings.sources.get(s, {}).get("enabled")]
     for s in sources:
         fetched = None
         if from_file:
@@ -95,7 +96,7 @@ def stats():
     if not storage.exists("gold.jobs_enriched"):
         raise typer.Exit("Run `jobradar enrich` first.")
     sql = """SELECT category_label AS category, count(*) AS jobs,
-                    count(*) FILTER (WHERE german_required = 'yes') AS german_required,
+                    count(*) FILTER (WHERE local_language_required = 'yes') AS local_language_needed,
                     count(*) FILTER (WHERE remote_mode = 'remote') AS remote,
                     count(*) FILTER (WHERE salary_min IS NOT NULL) AS with_salary,
                     count(*) FILTER (WHERE visa_sponsorship = 'yes') AS visa
@@ -122,7 +123,8 @@ def cv_load(path: Path = typer.Argument(..., exists=True, help="PDF, Markdown or
 @app.command()
 def match(
     category: list[str] = typer.Option(None, "--category", "-c"),
-    no_german: bool = typer.Option(False, "--no-german", help="Exclude ads that require German"),
+    no_local_language: bool = typer.Option(False, "--no-local-language", "--no-german",
+                                           help="Exclude ads that require the country's local language (German in DE, Swedish in SE, …)"),
     remote: list[str] = typer.Option(None, "--remote", help="remote, hybrid and/or onsite"),
     salary: bool = typer.Option(False, "--salary", help="Only ads that state a salary"),
     visa: bool = typer.Option(False, "--visa", help="Only ads that mention visa sponsorship"),
@@ -136,19 +138,19 @@ def match(
     """Find the best-fitting ads for your CV, with reasons and gaps."""
     from .match import Filters, run_match
 
-    filters = Filters(categories=category or [], exclude_german_required=no_german, remote_modes=remote or [],
+    filters = Filters(categories=category or [], exclude_local_language_required=no_local_language, remote_modes=remote or [],
                       salary_only=salary, visa_only=visa, contract_types=contract or [],
                       seniority=seniority or [], posted_within_days=days)
     with Progress(console=console) as progress:
         task = progress.add_task("Matching", total=None)
         results = run_match(filters, cv_hash=cv_hash, shortlist=shortlist, rerank=top,
                             progress=_progress_cb(progress, task))
-    table = Table("#", "score", "sim", "title", "company", "German", "remote", "salary", "why / gaps")
+    table = Table("#", "score", "sim", "title", "company", "Local lang.", "remote", "salary", "why / gaps")
     for i, r in enumerate(results[:top], 1):
         salary_txt = r.get("salary_text") or "–"
         why = "; ".join(r["reasons"][:2]) + (" | gaps: " + "; ".join(r["gaps"][:2]) if r["gaps"] else "")
         table.add_row(str(i), str(r["score"]), f"{r['similarity']:.2f}", r["title"][:45], r["company"][:25],
-                      r["german_required"], r["remote_mode"], salary_txt[:20], why[:90])
+                      r["local_language_required"], r["remote_mode"], salary_txt[:20], why[:90])
     console.print(table)
     console.print(f"{len(results)} shortlisted. Links and details: `jobradar app`.")
 
@@ -244,7 +246,7 @@ def demo():
     ingest(source=["arbeitnow", "bundesagentur"], days=3650, from_file=sample)
     enrich(deep=True, category=None, limit=None)
     cv_load(REPO_ROOT / "tests" / "fixtures" / "sample_cv.md")
-    match(category=None, no_german=False, remote=None, salary=False, visa=False, contract=None,
+    match(category=None, no_local_language=False, remote=None, salary=False, visa=False, contract=None,
           seniority=None, days=None, top=5, shortlist=10, cv_hash=None)
     lineage_sync()
 

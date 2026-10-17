@@ -16,11 +16,13 @@ import pyarrow as pa
 from . import lineage, storage
 from .config import get_settings
 from .privacy import redact, scrub_payload, sha256
-from .sources import arbeitnow, bundesagentur
+from .sources import adzuna, arbeitnow, bundesagentur, jobtech
 
 SOURCES: dict[str, tuple[Callable, str, str]] = {
     "arbeitnow": (arbeitnow.fetch, arbeitnow.NAMESPACE, "/api/job-board-api"),
     "bundesagentur": (bundesagentur.fetch, bundesagentur.NAMESPACE, "/jobboerse/jobsuche-service/jobs"),
+    "jobtech": (jobtech.fetch, jobtech.NAMESPACE, "/search"),
+    "adzuna": (adzuna.fetch, adzuna.NAMESPACE, "/v1/api/jobs"),
 }
 
 TS = pa.timestamp("us", tz="UTC")
@@ -31,24 +33,38 @@ SILVER_SCHEMA = pa.schema([
     ("job_types", pa.list_(pa.string())), ("tags", pa.list_(pa.string())),
     ("description", pa.string()), ("language", pa.string()), ("redactions", pa.int32()),
     ("url", pa.string()), ("posted_at", TS), ("ingested_at", TS), ("content_hash", pa.string()),
+    ("local_language_source", pa.string()),  # set when the API itself says whether the local language is needed
+    ("license", pa.string()), ("attribution", pa.string()),  # the source's terms travel with every row
 ])
 BRONZE_SCHEMA = pa.schema([
     ("raw_id", pa.string()), ("source", pa.string()), ("source_id", pa.string()),
     ("fetched_at", TS), ("payload_json", pa.string()),
 ])
 
-_DE = re.compile(r"\b(und|der|die|das|wir|sie|mit|für|ist|nicht|ihre|deine|bei|auf)\b", re.IGNORECASE)
-_EN = re.compile(r"\b(and|the|with|you|we|our|for|are|your|will|this|of)\b", re.IGNORECASE)
+# Rough stop-word detector: enough to tell which language an ad is written in. Not a general language ID.
+_STOPWORDS = {
+    "en": r"and|the|with|you|we|our|for|are|your|will|this|of",
+    "de": r"und|der|die|das|wir|sie|mit|für|ist|nicht|ihre|deine|bei|auf",
+    "sv": r"och|att|som|är|för|med|vi|du|har|inte|till|av|ett|på|oss|din|dina",
+    "nl": r"het|een|van|wij|jij|ook|naar|niet|zijn|wordt|bij|voor|met|jouw|onze|deze",
+    "fr": r"les|des|nous|vous|pour|avec|dans|une|est|qui|que|sur|aux|du",
+    "it": r"della|delle|dei|gli|nel|nella|siamo|sono|che|una|non|azienda|lavoro",
+    "pl": r"się|oraz|jest|dla|nie|jak|lub|będzie|przez|także|pracy|firma",
+    "es": r"los|las|para|nuestro|nuestra|equipo|trabajo|experiencia|empresa|buscamos|ofrecemos|también",
+}
+_LANG_RE = {lang: re.compile(rf"\b({words})\b", re.IGNORECASE) for lang, words in _STOPWORDS.items()}
 
 
 def detect_language(text: str) -> str:
-    de, en = len(_DE.findall(text)), len(_EN.findall(text))
-    if de == en == 0:
+    counts = {lang: len(rx.findall(text)) for lang, rx in _LANG_RE.items()}
+    best = max(counts.values())
+    if best == 0:
         return "unknown"
-    return "de" if de > en else "en"
+    leaders = [lang for lang, n in counts.items() if n == best]
+    return "en" if "en" in leaders else leaders[0]
 
 
-def to_silver(ad: dict, now: datetime) -> dict:
+def to_silver(ad: dict, now: datetime, terms: dict | None = None) -> dict:
     description, n = redact(ad.get("description_raw") or "")
     title, n_title = redact(ad.get("title") or "")
     row = {k: ad.get(k) for k in SILVER_SCHEMA.names if k in ad}
@@ -59,6 +75,8 @@ def to_silver(ad: dict, now: datetime) -> dict:
         "language": detect_language(f"{title}\n{description}"),
         "redactions": n + n_title,
         "ingested_at": now,
+        "license": (terms or {}).get("license"),
+        "attribution": (terms or {}).get("attribution"),
         "content_hash": sha256(f'{title}\n{ad.get("company", "")}\n{description}'),
     })
     return row
@@ -71,8 +89,11 @@ def ingest(source: str, fetched: tuple[list[dict], list[dict]] | None = None, da
     fetch, namespace, endpoint = SOURCES[source]
     now = datetime.now(UTC)
 
+    terms = (settings.sources.get(source) or {}).get("terms") or {}
     with lineage.run(f"ingest.{source}", f"Fetch {source} job ads from the last {days} days") as run:
-        run.inputs = [lineage.external_dataset(namespace, endpoint)]
+        # Where the data came from and under which terms: recorded with the input dataset of every ingest run
+        run.inputs = [lineage.external_dataset(namespace, endpoint, facets={
+            "jobradar_source_terms": lineage.custom_facet("SourceTermsDatasetFacet", source=source, **terms)})]
         ads, raw = fetched if fetched is not None else fetch(settings.sources[source], days)
 
         bronze_rows = [{
@@ -83,7 +104,7 @@ def ingest(source: str, fetched: tuple[list[dict], list[dict]] | None = None, da
         bronze_name = f"bronze.{source}_raw"
         storage.upsert(bronze_name, pa.Table.from_pylist(bronze_rows, schema=BRONZE_SCHEMA), key="raw_id")
 
-        silver_rows = [to_silver(ad, now) for ad in ads]
+        silver_rows = [to_silver(ad, now, terms) for ad in ads]
         # One row per job_id even if a source returned it twice
         silver_rows = list({r["job_id"]: r for r in silver_rows}.values())
         result = storage.upsert("silver.jobs", pa.Table.from_pylist(silver_rows, schema=SILVER_SCHEMA),
@@ -113,8 +134,9 @@ def apply_retention(days: int | None = None) -> dict:
         ).column("job_id").to_pylist()
         if old:
             ids = ", ".join("'" + i.replace("'", "''") + "'" for i in old)
-            for name, col in (("silver.jobs", "job_id"), ("gold.jobs_enriched", "job_id"),
-                              ("bronze.arbeitnow_raw", "raw_id"), ("bronze.bundesagentur_raw", "raw_id")):
+            tables = [("silver.jobs", "job_id"), ("gold.jobs_enriched", "job_id")]
+            tables += [(f"bronze.{src}_raw", "raw_id") for src in SOURCES]
+            for name, col in tables:
                 deleted[name] = storage.delete(name, f"{col} IN ({ids})")
                 storage.vacuum(name)
             from .index import delete_jobs  # vectors are a copy too

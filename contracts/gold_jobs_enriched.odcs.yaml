@@ -79,10 +79,18 @@ schema:
   - name: category_confidence
     logicalType: number
     physicalType: double
-  - name: german_required
+  - name: country
     logicalType: string
     physicalType: string
-    description: Does the ad require German?
+    description: Country of the ad (ISO 3166 alpha-2)
+  - name: local_language
+    logicalType: string
+    physicalType: string
+    description: Main language of that country (de, sv, nl, ...); empty when unknown
+  - name: local_language_required
+    logicalType: string
+    physicalType: string
+    description: Does the ad require the country's local language?
     quality:
     - metric: invalidValues
       arguments:

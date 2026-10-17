@@ -21,7 +21,7 @@ import requests
 from .config import get_settings
 from .lineage import custom_facet
 
-PROMPT_VERSION = "2026-10-12.2"
+PROMPT_VERSION = "2026-10-17.1"
 FAKE_DIM = 256
 
 

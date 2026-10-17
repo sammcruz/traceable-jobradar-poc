@@ -55,6 +55,18 @@ schema:
   - name: tags
     logicalType: array
     physicalType: 'list<item: string>'
+  - name: local_language_source
+    logicalType: string
+    physicalType: string
+    description: yes / nice_to_have when the source API itself says the local language is needed
+  - name: license
+    logicalType: string
+    physicalType: string
+    description: Licence or terms the source offers its data under (see config/sources.yml)
+  - name: attribution
+    logicalType: string
+    physicalType: string
+    description: Credit line to show when the ad is displayed
   - name: description
     logicalType: string
     physicalType: string

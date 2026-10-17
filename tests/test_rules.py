@@ -84,3 +84,38 @@ def test_bundesagentur_v6_item():
     assert ad["job_types"] == ["VOLLZEIT"] and ad["posted_at"].year == 2026
     s = rules.salary(ad["description_raw"])
     assert (s["salary_min"], s["salary_max"], s["salary_period"]) == (54000, 75000, "year")
+
+
+@pytest.mark.parametrize(("text", "language", "local", "source", "expected"), [
+    ("Vi söker dig som talar flytande svenska.", "sv", "sv", None, "yes"),
+    ("We build things. Swedish is a plus.", "en", "sv", None, "nice_to_have"),
+    ("English is our working language. No Swedish required.", "en", "sv", None, "no"),
+    ("Wij zoeken een data engineer. Vloeiend Nederlands vereist.", "nl", "nl", None, "yes"),
+    ("We are looking for a data analyst. Dutch is a plus.", "en", "nl", None, "nice_to_have"),
+    ("We are a growing team of data engineers.", "en", "nl", None, None),
+    ("Nous recherchons un analyste. Français courant exigé.", "fr", "fr", None, "yes"),
+    ("Du ska ha goda kunskaper.", "sv", "sv", "nice_to_have", "nice_to_have"),  # the source API wins
+    ("Anything at all.", "en", "en", None, "no"),  # English-speaking country
+    ("Anything at all.", "en", None, None, None),  # country unknown
+])
+def test_local_language_required(text, language, local, source, expected):
+    assert rules.local_language_required(text, language, local, source)[0] == expected
+
+
+def test_country_to_language():
+    assert rules.local_language("DE") == "de" and rules.local_language("se") == "sv"
+    assert rules.local_language("NL") == "nl" and rules.local_language("CH") is None
+
+
+@pytest.mark.parametrize(("text", "expected"), [
+    ("Wir suchen Sie und Ihre Erfahrung mit der Cloud für unser Team", "de"),
+    ("We are looking for you to join our team and build the platform", "en"),
+    ("Vi söker dig som har erfarenhet och som vill utvecklas med oss", "sv"),
+    ("Wij zoeken een collega voor ons team, met ervaring in data", "nl"),
+    ("Nous recherchons une personne pour rejoindre notre équipe avec les compétences", "fr"),
+    ("12345", "unknown"),
+])
+def test_detect_language(text, expected):
+    from jobradar.ingest import detect_language
+
+    assert detect_language(text) == expected

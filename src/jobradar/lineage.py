@@ -52,8 +52,8 @@ def lake_dataset(name: str, with_facets: bool = True) -> dict:
     return ds
 
 
-def external_dataset(namespace: str, name: str) -> dict:
-    return {"namespace": namespace, "name": name, "facets": {}}
+def external_dataset(namespace: str, name: str, facets: dict | None = None) -> dict:
+    return {"namespace": namespace, "name": name, "facets": facets or {}}
 
 
 def private_dataset(name: str) -> dict:

@@ -17,7 +17,8 @@ def test_ingest_and_enrich(pipeline):
     assert devops["visa_sponsorship"] == "yes"
     assert devops["remote_mode"] == "remote"
     assert json.loads(devops["field_sources"])["remote_mode"] == "source"
-    assert gold["Controller (m/w/d)"]["german_required"] == "yes"
+    assert gold["Controller (m/w/d)"]["local_language_required"] == "yes"
+    assert gold["Controller (m/w/d)"]["local_language"] == "de"
 
 
 def test_bronze_has_no_contact_data(pipeline):
@@ -31,8 +32,8 @@ def test_contracts_pass(pipeline):
 
 
 def test_match_filters_and_lineage(pipeline):
-    results = run_match(Filters(exclude_german_required=True), shortlist=10, rerank=5)
-    assert results and all(r["german_required"] != "yes" for r in results)
+    results = run_match(Filters(exclude_local_language_required=True), shortlist=10, rerank=5)
+    assert results and all(r["local_language_required"] != "yes" for r in results)
     assert results[0]["title"] == "Senior Data Engineer (Lakehouse)"
     jobs = [e["job"]["name"] for e in lineage.read_events() if e["eventType"] == "COMPLETE"]
     assert {"ingest.arbeitnow", "ingest.bundesagentur", "enrich.jobs", "cv.load", "match.cv"} <= set(jobs)
@@ -90,3 +91,41 @@ def test_embedding_reports_progress_and_resumes():
     assert n == 4 and seen[-1] == (4, 4) and (3, 4) in seen
     _, n = index.ensure_job_vectors(rows)  # an interrupted run continues: only the 6 missing are embedded
     assert n == 6
+
+
+def test_ingest_records_source_terms_in_lineage_and_rows(pipeline):
+    events = [e for e in lineage.read_events() if e["job"]["name"] == "ingest.arbeitnow" and e["eventType"] == "COMPLETE"]
+    facet = events[-1]["inputs"][0]["facets"]["jobradar_source_terms"]
+    assert facet["source"] == "arbeitnow" and facet["attribution"] and facet["terms_status"] in ("verified", "to_verify")
+    row = storage.read("silver.jobs").to_pylist()[0]
+    assert row["attribution"] and row["license"]
+
+
+def test_retention_covers_every_source_table(pipeline):
+    from jobradar.ingest import SOURCES
+
+    assert {"arbeitnow", "bundesagentur", "jobtech", "adzuna"} <= set(SOURCES)
+
+
+def test_rows_enriched_before_the_rename_are_carried_over(pipeline):
+    """An LLM-enriched row written with german_required (older schema) keeps its value after the upgrade."""
+    import pyarrow as pa
+
+    from jobradar.enrich import run_enrich
+
+    silver = {r["job_id"]: r for r in storage.read("silver.jobs").to_pylist()}
+    job_id = next(j for j, r in silver.items() if r["country"] == "DE")
+    old = storage.read("gold.jobs_enriched").to_pylist()
+    for r in old:
+        if r["job_id"] == job_id:
+            r["german_required"] = "nice_to_have"
+        for k in ("local_language_required", "local_language", "country"):
+            r.pop(k)
+    # keep the old rows as 'deep enriched by the same model' so enrich reuses them
+    for r in old:
+        r["deep_enriched"], r["enrich_model"] = True, "fake"
+    cols = {k: [r.get(k) for r in old] for k in old[0]}
+    storage.overwrite("gold.jobs_enriched", pa.table(cols))
+    run_enrich(deep=False)
+    gold = {r["job_id"]: r for r in storage.read("gold.jobs_enriched").to_pylist()}
+    assert gold[job_id]["local_language_required"] == "nice_to_have" and gold[job_id]["local_language"] == "de"

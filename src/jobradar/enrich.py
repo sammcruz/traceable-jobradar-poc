@@ -21,7 +21,7 @@ from . import index, lineage, models, rules, storage
 from .config import get_settings
 
 ENUMS = {
-    "german_required": {"yes", "no", "nice_to_have", "unknown"},
+    "local_language_required": {"yes", "no", "nice_to_have", "unknown"},
     "remote_mode": {"remote", "hybrid", "onsite", "unknown"},
     "visa_sponsorship": {"yes", "no", "unknown"},
     "contract_type": {"permanent", "fixed_term", "freelance", "internship", "working_student",
@@ -33,9 +33,9 @@ TS = pa.timestamp("us", tz="UTC")
 GOLD_SCHEMA = pa.schema([
     ("job_id", pa.string()), ("content_hash", pa.string()), ("source", pa.string()),
     ("title", pa.string()), ("company", pa.string()), ("location", pa.string()), ("url", pa.string()),
-    ("language", pa.string()), ("posted_at", TS),
+    ("language", pa.string()), ("country", pa.string()), ("local_language", pa.string()), ("posted_at", TS),
     ("category", pa.string()), ("category_label", pa.string()), ("category_confidence", pa.float64()),
-    ("german_required", pa.string()), ("remote_mode", pa.string()),
+    ("local_language_required", pa.string()), ("remote_mode", pa.string()),
     ("salary_min", pa.float64()), ("salary_max", pa.float64()), ("salary_currency", pa.string()),
     ("salary_period", pa.string()), ("salary_text", pa.string()),
     ("visa_sponsorship", pa.string()), ("contract_type", pa.string()), ("work_time", pa.string()),
@@ -46,7 +46,7 @@ GOLD_SCHEMA = pa.schema([
 
 DEEP_SYSTEM = """You extract facts from a job advertisement. Answer with one JSON object only.
 Use exactly these keys and allowed values; use "unknown" when the ad does not say:
-  german_required: yes | no | nice_to_have | unknown
+  local_language_required: yes | no | nice_to_have | unknown   (is the language named as "Local language" required?)
   remote_mode: remote | hybrid | onsite | unknown
   visa_sponsorship: yes | no | unknown
   contract_type: permanent | fixed_term | freelance | internship | working_student | apprenticeship | unknown
@@ -96,12 +96,15 @@ def enrich_row(row: dict, vector, cat_vectors: dict, labels: dict) -> dict:
         sources[field] = method if value is not None else "none"
 
     out: dict = {k: row.get(k) for k in ("job_id", "content_hash", "source", "title", "company", "location",
-                                         "url", "language", "posted_at")}
+                                         "url", "language", "country", "posted_at")}
+    local = rules.local_language(row.get("country"))
+    out["local_language"] = local
     cat, conf, method = classify(row["title"], vector, cat_vectors)
     out.update(category=cat, category_label=labels.get(cat, cat), category_confidence=conf)
     sources["category"] = method or "none"
 
-    put("german_required", rules.german_required(text, row.get("language") or ""))
+    put("local_language_required", rules.local_language_required(
+        text, row.get("language") or "", local, row.get("local_language_source")))
     put("remote_mode", rules.remote_mode(text, row.get("remote_source")))
     put("visa_sponsorship", rules.visa(text, row.get("visa_source")))
     put("contract_type", rules.contract_type(text, row.get("job_types") or []))
@@ -132,7 +135,8 @@ def deep_enrich(out: dict, description: str) -> dict:
     cats = get_settings().categories
     prompt = (
         f"Category ids: {', '.join(c['id'] for c in cats)}\n\n"
-        f"Title: {out['title']}\nCompany: {out['company']}\nLocation: {out['location']}\n\n"
+        f"Title: {out['title']}\nCompany: {out['company']}\nLocation: {out['location']}\n"
+        f"Local language: {out.get('local_language') or 'unknown'}\n\n"
         f"Ad text:\n{description[:4000]}"
     )
     answer = models.chat_json(DEEP_SYSTEM, prompt, fake=_fake_deep)
@@ -164,6 +168,20 @@ def deep_enrich(out: dict, description: str) -> dict:
 
 # ---------- step ----------
 
+def _carry_over(prev: dict, row: dict) -> dict:
+    """Keep an earlier LLM-enriched row, filling the columns added since it was written."""
+    prev = dict(prev)
+    local = rules.local_language(row.get("country"))
+    if prev.get("country") is None:
+        prev["country"] = row.get("country")
+    if prev.get("local_language") is None:
+        prev["local_language"] = local
+    if prev.get("local_language_required") is None:  # rows from before the rename used german_required
+        old = prev.get("german_required")
+        prev["local_language_required"] = old if (local == "de" and old) else "unknown"
+    return prev
+
+
 def run_enrich(deep: bool = False, categories: list[str] | None = None, limit: int | None = None,
                progress=None, embed_progress=None) -> dict:
     settings = get_settings()
@@ -178,7 +196,7 @@ def run_enrich(deep: bool = False, categories: list[str] | None = None, limit: i
     model_name = settings.llm_model if settings.provider != "fake" else "fake"
     labels = {c["id"]: c["label"] for c in settings.categories}
 
-    with lineage.run("enrich.jobs", "Classify job ads and extract German, remote, salary, visa, contract, "
+    with lineage.run("enrich.jobs", "Classify job ads and extract local language, remote, salary, visa, contract, "
                                     "seniority and skills; LLM fills gaps when --deep") as run:
         run.inputs = [lineage.lake_dataset("silver.jobs")]
         vectors, newly_embedded = index.ensure_job_vectors(rows, progress=embed_progress)
@@ -191,7 +209,7 @@ def run_enrich(deep: bool = False, categories: list[str] | None = None, limit: i
             keep_deep = prev and prev["content_hash"] == row["content_hash"] and prev.get("deep_enriched") \
                 and prev.get("enrich_model") == model_name
             if keep_deep:
-                out_rows.append(prev)
+                out_rows.append(_carry_over(prev, row))
                 continue
             out = enrich_row(row, vectors.get(row["job_id"]), cat_vectors, labels)
             wants_deep = deep and (not categories or out["category"] in categories) \

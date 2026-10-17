@@ -1,7 +1,7 @@
 # traceable-jobradar-poc · jobradar
 
 A small, fully open-source AI data pipeline you can run on a laptop: it collects last week's job ads from two
-public German/EU APIs, uses **local models** to classify them and extract facts (German required? remote? salary?
+public European job APIs, uses **local models** to classify them and extract facts (local language required? remote? salary?
 visa sponsorship? contract type?), and matches them against **your CV**, which never leaves your machine.
 
 Every step emits **OpenLineage** events, every table is plain **Delta Lake**, and governance is built in rather
@@ -66,22 +66,55 @@ make models                                    # qwen3:8b + bge-m3 (~6 GB)
 make lineage-up                                # Marquez UI at http://localhost:3000 (API on :5050)
 make run                                       # ingest last 7 days, enrich, LLM on tech ads
 jobradar cv load ~/Documents/my-cv.pdf
-jobradar match --no-german --remote remote --remote hybrid
+jobradar match --no-local-language --remote remote --remote hybrid
 jobradar app                                   # local web page at http://localhost:8501
 ```
 
 A first `make run` takes a while: embeddings for all ads are quick, but the LLM step takes a few seconds per ad,
 so it is limited to tech categories and 200 ads by default. Results are cached by content hash.
 
+## Sources and their terms
+
+| Source | Countries | Key | Notes |
+|---|---|---|---|
+| Arbeitnow | DE, remote | none | Full text |
+| Bundesagentur für Arbeit | DE | none | Full text, keyword search |
+| JobTech (Arbetsförmedlingen) | SE | none | Full text, mostly Swedish; structured language requirements |
+| Adzuna | NL by default (also GB, FR, IT, AT, PL, ...) | free, in `.env` | Description excerpts only; predicted salaries are ignored |
+
+Adzuna is optional. Get a free key at <https://developer.adzuna.com/signup> and put it in your own `.env`
+(git-ignored, never committed):
+
+```
+ADZUNA_APP_ID=...
+ADZUNA_APP_KEY=...
+```
+
+Without it the source is skipped with a message. A new key starts on a small test plan, so `config/sources.yml`
+caps Adzuna at `max_calls: 20` per run. The key is sent in the URL's query string, so errors are rebuilt without
+the URL and the key never reaches the terminal or the lineage log.
+
+**Terms travel with the data.** Each source has a `terms` block in `config/sources.yml` (licence, attribution,
+whether attribution is required). Every ingest run records it on its input dataset in lineage
+(`jobradar_source_terms`, schema in `docs/facets/`), and every silver row carries `license` and `attribution`,
+so "this ad came from X under these terms" can be answered from the data you own. `terms_status: to_verify`
+means nobody has read that source's own terms yet. Do that before you use the data for anything beyond a
+personal experiment, then set it to `verified`.
+
+**Local language.** "Needs German" became "needs the local language": the ad's country sets which language
+counts (German in DE/AT, Swedish in SE, Dutch in NL, ...). The source API's own answer wins, then explicit
+phrases, then "the ad itself is written in that language". Rules for remote work, visa and contract type are
+still written for German and English ads; for other languages those fields are more often `unknown`.
+
 ## Commands
 
 | Command | What it does |
 |---|---|
 | `jobradar ingest` | Fetch ads from the last 7 days (config/sources.yml), scrub contact data, apply retention |
-| `jobradar enrich [--deep -c data --limit 100]` | Category, German, remote, salary, visa, contract, seniority, skills |
+| `jobradar enrich [--deep -c data --limit 100]` | Category, local language, remote, salary, visa, contract, seniority, skills |
 | `jobradar stats` | Counts per category |
 | `jobradar cv load FILE` | PDF/Markdown → Markdown → profile (no name or contact data) → vector |
-| `jobradar match [filters]` | `--no-german --remote remote --salary --visa --contract permanent --seniority senior -c data` |
+| `jobradar match [filters]` | `--no-local-language --remote remote --salary --visa --contract permanent --seniority senior -c data` |
 | `jobradar app` | Streamlit page: match, explore, lineage, privacy |
 | `jobradar erase` | Delete your CV and everything derived from it, found through lineage |
 | `jobradar retention` | Re-apply the retention window |
@@ -113,7 +146,7 @@ If you point `LLM_BASE_URL` at a hosted API, the app and lineage will show that 
 | [Docling](https://github.com/docling-project/docling) | MIT | PDF → Markdown |
 | [Ollama](https://ollama.com) | MIT | Local model runtime |
 | Qwen3 8B (default LLM) | Apache 2.0 | Extraction, CV profile, rerank |
-| BGE-M3 (default embeddings) | MIT | Multilingual embeddings (most ads are German) |
+| BGE-M3 (default embeddings) | MIT | Multilingual embeddings (ads come in German, Swedish, Dutch and English) |
 | [Streamlit](https://streamlit.io) | Apache 2.0 | Local web page |
 
 Model licenses are per model variant. Check the license of the exact model you pull before you rely on it.
@@ -139,7 +172,7 @@ Read each source's terms before publishing anything derived from the ads. This r
 
 - The live APIs were not reachable from the environment this was built in; parsing is written against their
   documented formats and tested with invented responses. Expect small fixes on the first live run.
-- Extraction rules are tuned for German and English ads; the LLM fills gaps but can be wrong. Check
+- Extraction rules are tuned for German and English ads (local-language detection also covers Swedish, Dutch, French, Italian, Polish and Spanish); the LLM fills gaps but can be wrong. Check
   `field_sources` before trusting a value.
 - No authentication: the web page is meant for localhost only.
 

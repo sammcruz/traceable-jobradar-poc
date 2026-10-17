@@ -36,6 +36,78 @@ def german_required(text: str, language: str) -> tuple[str | None, str]:
     return None, ""
 
 
+# ---- local language: the main language of the ad's country (German in DE/AT, Swedish in SE, ...) ----
+
+COUNTRY_LANGUAGE = {"DE": "de", "AT": "de", "SE": "sv", "NL": "nl", "FR": "fr", "IT": "it", "PL": "pl",
+                    "ES": "es", "GB": "en", "IE": "en", "UK": "en"}
+LANGUAGE_NAME = {"de": "german", "sv": "swedish", "nl": "dutch", "fr": "french", "it": "italian",
+                 "pl": "polish", "es": "spanish"}
+
+# Phrases in the local language itself, plus English templates built from the language name below.
+NATIVE = {
+    "sv": {"yes": [r"flytande svenska", r"goda kunskaper i svenska", r"svenska i tal och skrift",
+                   r"beh(ä|a)rskar svenska", r"svenska (är|ar) ett krav"],
+           "nice": [r"svenska (är|ar) meriterande", r"meriterande (med )?svenska"],
+           "no": [r"arbetsspr(å|a)ket (är|ar) engelska", r"engelska som arbetsspr(å|a)k"]},
+    "nl": {"yes": [r"vloeiend nederlands", r"uitstekende beheersing van (het )?nederlands",
+                   r"nederlands in woord en geschrift", r"goede kennis van (het )?nederlands"],
+           "nice": [r"nederlands (is )?(een )?(pre|plus)", r"kennis van (het )?nederlands is een pre"],
+           "no": [r"werktaal is engels", r"engels als voertaal"]},
+    "fr": {"yes": [r"fran(ç|c)ais courant", r"ma(î|i)trise (parfaite )?du fran(ç|c)ais",
+                   r"fran(ç|c)ais (est )?(obligatoire|exig(é|e))"],
+           "nice": [r"fran(ç|c)ais (est )?un (plus|atout)"],
+           "no": [r"langue de travail (est )?l'anglais"]},
+    "it": {"yes": [r"italiano (fluente|madrelingua)", r"ottima conoscenza (della lingua )?italiana",
+                   r"italiano (è|e') (richiesto|obbligatorio)"],
+           "nice": [r"italiano (è|e') (un )?(plus|preferibile)"],
+           "no": [r"lingua di lavoro (è|e') l'inglese"]},
+    "pl": {"yes": [r"bieg(ł|l)a znajomo(ś|s)(ć|c) j(ę|e)zyka polskiego", r"j(ę|e)zyk polski (jest )?wymagany"],
+           "nice": [], "no": []},
+    "es": {"yes": [r"espa(ñ|n)ol (nativo|fluido|avanzado)", r"dominio del espa(ñ|n)ol"], "nice": [], "no": []},
+}
+ENGLISH_WORKING_LANGUAGE = [r"english[- ]speaking team", r"working language is english",
+                            r"english is the (working|company) language"]
+
+
+def _templates(name: str) -> dict:
+    return {
+        "no": [rf"no {name} (required|needed)", rf"{name} (is )?not (required|necessary|needed)",
+               rf"without {name}", rf"no {name}\b"] + ENGLISH_WORKING_LANGUAGE,
+        "nice": [rf"{name} (is )?(a )?(plus|bonus|nice to have|advantage)", rf"basic {name}"],
+        "yes": [rf"fluent (in )?{name}", rf"{name}\s*\(?(c1|c2|b2)", rf"(business|professional)[- ]fluent {name}",
+                rf"{name} (is )?(a )?must", rf"excellent {name}", rf"{name} and english"],
+    }
+
+
+def local_language(country: str | None) -> str | None:
+    """Main language of the ad's country, or None when we cannot say (e.g. Switzerland has four)."""
+    return COUNTRY_LANGUAGE.get((country or "").upper())
+
+
+def local_language_required(text: str, ad_language: str, local: str | None,
+                            from_source: str | None = None) -> tuple[str | None, str]:
+    """Does the ad need the country's local language? yes | no | nice_to_have | None (cannot tell).
+
+    Order: what the source API says, then explicit phrases, then 'the ad itself is written in that language'.
+    """
+    if not local:
+        return None, ""
+    if from_source in ("yes", "no", "nice_to_have"):
+        return from_source, "source"
+    if local == "en":
+        return "no", "rule:english_speaking_country"
+    if local == "de":
+        return german_required(text, ad_language)
+    name, native = LANGUAGE_NAME.get(local, local), NATIVE.get(local, {})
+    tpl = _templates(name)
+    for label, key in (("no", "no"), ("nice_to_have", "nice"), ("yes", "yes")):
+        if _any(native.get(key, []) + tpl[key], text):
+            return label, "rule"
+    if ad_language == local:
+        return "yes", f"rule:ad_written_in_{name}"
+    return None, ""
+
+
 def remote_mode(text: str, remote_source: bool | None) -> tuple[str | None, str]:
     if re.search(r"\bhybrid\b|hybrides arbeiten|teilweise (remote|homeoffice)", text, re.IGNORECASE):
         return "hybrid", "rule"

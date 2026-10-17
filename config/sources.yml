@@ -7,6 +7,15 @@ arbeitnow:
   url: https://www.arbeitnow.com/api/job-board-api
   max_pages: 40
   request_pause: 1.0   # seconds between requests; the API answers 429 when asked too fast
+  terms:
+    # Recorded in the lineage of every ingest run and on every silver row. terms_status says whether
+    # a person has read the source's own terms yet: "to_verify" means NOT yet. Update when you have.
+    license: "Free public API, no licence stated on the API page"
+    license_url: https://www.arbeitnow.com/api/job-board-api
+    attribution: "Jobs via Arbeitnow (arbeitnow.com)"
+    attribution_required: null
+    terms_status: to_verify
+    researched_on: "2026-10-17"
 
 bundesagentur:
   enabled: true
@@ -27,6 +36,13 @@ bundesagentur:
   max_pages_per_keyword: 2
   fetch_details: true
   request_pause: 0.5
+  terms:
+    license: "Public job-search API of the Bundesagentur für Arbeit; licence to be confirmed"
+    license_url: https://bund.dev/apis
+    attribution: "Source: Bundesagentur für Arbeit (arbeitsagentur.de)"
+    attribution_required: null
+    terms_status: to_verify
+    researched_on: "2026-10-17"
   # The agency lists ~1M ads; we only search these keywords. Tech-heavy on purpose, plus HR, finance, sales.
   keywords:
     - data engineer
@@ -63,3 +79,58 @@ bundesagentur:
     - regulatory affairs
     - public affairs
     - energiepolitik
+
+jobtech:
+  enabled: true
+  # Swedish Public Employment Service (Arbetsförmedlingen / Platsbanken). Open job-ad API, no key.
+  # Full ad text, mostly Swedish. Swedish keywords find more; English ones catch international roles.
+  url: https://jobsearch.api.jobtechdev.se
+  max_pages_per_keyword: 3     # 100 ads per page
+  request_pause: 0.3
+  keywords:
+    - data engineer
+    - dataanalytiker
+    - maskininlärning
+    - mjukvaruutvecklare
+    - devops
+    - molnarkitekt
+    - UX designer
+    - produktägare
+    - vätgas
+    - energi
+    - hållbarhet
+    - marknadsanalytiker
+    - public affairs
+  terms:
+    license: "Arbetsförmedlingen open data (JobTech Development); exact licence to be confirmed"
+    license_url: https://jobtechdev.se/en/components/jobsearch
+    attribution: "Source: Arbetsförmedlingen / JobTech (jobtechdev.se)"
+    attribution_required: true
+    terms_status: to_verify
+    researched_on: "2026-10-17"
+
+adzuna:
+  enabled: true
+  # Needs a free key in .env (never in git): ADZUNA_APP_ID and ADZUNA_APP_KEY, from developer.adzuna.com/signup.
+  # Without them this source is skipped with a message. Adzuna covers more countries (gb, fr, it, at, pl, ...);
+  # add their codes below. Descriptions are excerpts, so some extracted fields will be "unknown".
+  url: https://api.adzuna.com/v1/api/jobs
+  countries: [nl]
+  keywords:
+    - data engineer
+    - data analyst
+    - market analyst
+    - hydrogen
+    - sustainability
+  results_per_page: 50
+  max_pages_per_keyword: 1
+  max_calls: 20          # per run. A new key starts on a 25-call test plan; the free plan is about 250 a day
+  request_pause: 2.5     # seconds; the free plan allows about 25 calls a minute
+  terms:
+    license: "Adzuna API terms of service"
+    license_url: https://developer.adzuna.com/docs/terms_of_service
+    attribution: "Jobs by Adzuna (adzuna.com)"
+    attribution_required: true
+    terms_status: to_verify
+    researched_on: "2026-10-17"
+    storage_note: "Descriptions are excerpts. Check the terms before keeping them longer than the 7-day window."

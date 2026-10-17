@@ -11,8 +11,8 @@ import duckdb
 from . import storage
 from .config import get_settings
 
-TABLES = ["bronze.arbeitnow_raw", "bronze.bundesagentur_raw", "silver.jobs", "gold.jobs_enriched",
-          "gold.matches", "lineage.raw_events"]
+TABLES = ["bronze.arbeitnow_raw", "bronze.bundesagentur_raw", "bronze.jobtech_raw", "bronze.adzuna_raw",
+          "silver.jobs", "gold.jobs_enriched", "gold.matches", "lineage.raw_events"]
 
 
 def run_exit_test() -> list[dict]:
