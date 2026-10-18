@@ -21,7 +21,7 @@ import requests
 from .config import get_settings
 from .lineage import custom_facet
 
-PROMPT_VERSION = "2026-10-17.1"
+PROMPT_VERSION = "2026-10-18.1"
 FAKE_DIM = 256
 
 
@@ -66,12 +66,12 @@ def _ollama_root() -> str | None:
     return None
 
 
-def _chat_ollama(root: str, system: str, user: str, temperature: float) -> str:
+def _chat_ollama(root: str, system: str, user: str, temperature: float, max_tokens: int, num_ctx: int) -> str:
     s = get_settings()
     body = {
         "model": s.llm_model, "stream": False, "format": "json",
         "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
-        "options": {"temperature": temperature, "num_predict": MAX_ANSWER_TOKENS, "num_ctx": 4096},
+        "options": {"temperature": temperature, "num_predict": max_tokens, "num_ctx": num_ctx},
         "think": False,  # Qwen3, DeepSeek-R1 & co: answer directly, no hidden reasoning
     }
     resp = requests.post(f"{root}/api/chat", json=body, timeout=600)
@@ -82,27 +82,31 @@ def _chat_ollama(root: str, system: str, user: str, temperature: float) -> str:
     return (resp.json().get("message") or {}).get("content") or ""
 
 
-def _chat_openai(system: str, user: str, temperature: float) -> str:
+def _chat_openai(system: str, user: str, temperature: float, max_tokens: int) -> str:
     s = get_settings()
     resp = _client().chat.completions.create(
         model=s.llm_model,
         temperature=temperature,
-        max_tokens=MAX_ANSWER_TOKENS,
+        max_tokens=max_tokens,
         response_format={"type": "json_object"},
         messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
     )
     return resp.choices[0].message.content or ""
 
 
-def chat_json(system: str, user: str, *, fake: callable | None = None, temperature: float = 0.0) -> dict:
-    """Ask the model for a JSON object. `fake` supplies the deterministic stand-in answer."""
+def chat_json(system: str, user: str, *, fake: callable | None = None, temperature: float = 0.0,
+              max_tokens: int = MAX_ANSWER_TOKENS, num_ctx: int = 4096) -> dict:
+    """Ask the model for a JSON object. `fake` supplies the deterministic stand-in answer.
+
+    The defaults suit short extraction answers; longer outputs (CV, letter) pass bigger limits."""
     s = get_settings()
     if s.provider == "fake":
         return fake(user) if fake else {}
     root = _ollama_root()
     last_error = None
     for _ in range(2):
-        text = _chat_ollama(root, system, user, temperature) if root else _chat_openai(system, user, temperature)
+        text = (_chat_ollama(root, system, user, temperature, max_tokens, num_ctx) if root
+                else _chat_openai(system, user, temperature, max_tokens))
         try:
             return json.loads(_strip_reasoning(text))
         except json.JSONDecodeError as exc:

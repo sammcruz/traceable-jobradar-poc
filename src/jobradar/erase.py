@@ -41,7 +41,9 @@ def erase_cv(cv_hash: str | None = None) -> dict:
                 namespace, name = ds.split(":", 1)
                 if namespace == "jobradar-private":
                     kind = name.split("/")[0]
-                    pattern = {"cv_markdown": f"cv_{short}.md", "cv_profile": f"profile_{short}.json"}.get(kind)
+                    pattern = {"cv_markdown": f"cv_{short}.md", "cv_profile": f"profile_{short}.json",
+                               "cv_structured": f"cvdata_{short}.json",
+                               "application": name.split("/", 1)[-1] + ".json"}.get(kind)
                     if pattern:
                         for f in settings.private.glob(pattern):
                             f.unlink()
@@ -53,6 +55,11 @@ def erase_cv(cv_hash: str | None = None) -> dict:
             for f in settings.private.glob(f"*{short}*"):
                 f.unlink()
                 report["files_deleted"].append(f.name)
+        if not cv_hash:  # erasing everything also removes the name and contact details you typed in
+            identity = settings.private / "identity.json"
+            if identity.exists():
+                identity.unlink()
+                report["files_deleted"].append(identity.name)
         if storage.exists("gold.matches"):
             storage.vacuum("gold.matches")
             run.outputs = ["gold.matches"]

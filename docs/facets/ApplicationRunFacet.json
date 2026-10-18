@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sammcruz/traceable-jobradar-poc/blob/main/docs/facets/ApplicationRunFacet.json",
+  "title": "ApplicationRunFacet",
+  "description": "A tailored CV and cover letter prepared for one job. Counts and ids only: no CV or letter text, no identity data.",
+  "$defs": {
+    "ApplicationRunFacet": {
+      "allOf": [
+        {"$ref": "https://openlineage.io/spec/2-0-2/OpenLineage.json#/$defs/RunFacet"},
+        {
+          "type": "object",
+          "properties": {
+            "job_id": {"type": "string"},
+            "job_content_hash": {"type": ["string", "null"], "description": "Version of the ad the documents were written for"},
+            "country_profile": {"type": "string", "description": "Key in config/countries.yml, e.g. nl, de, gb"},
+            "country_profiles_version": {"type": "string", "description": "Hash of config/countries.yml"},
+            "output_language": {"type": "string"},
+            "photo_included": {"type": "boolean", "description": "Always false"},
+            "bullets_selected": {"type": "integer"},
+            "bullets_dropped_unverified": {"type": "integer", "description": "CV bullets the model returned that were not in the CV word for word"},
+            "ids_rejected": {"type": "integer", "description": "Item ids the model chose that do not exist"},
+            "flags": {"type": "integer", "description": "Numbers or skills in generated text not found in the CV"},
+            "skills_not_in_cv": {"type": "integer", "description": "Skills the ad asks for that the CV does not show"},
+            "runs_locally": {"type": "boolean"}
+          }
+        }
+      ]
+    }
+  },
+  "type": "object",
+  "properties": {"jobradar_application": {"$ref": "#/$defs/ApplicationRunFacet"}}
+}

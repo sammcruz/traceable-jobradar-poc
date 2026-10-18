@@ -1,0 +1,106 @@
+# Application conventions per country. Starting points for a POC, not legal or HR advice: check them
+# against current guidance for the country and employer before you send anything.
+#
+# Rules that apply everywhere (set in code, not here):
+#   - no photo, even if your original CV has one
+#   - output language: English
+#   - nothing is invented: bullets come verbatim from your CV, skills must appear in your CV
+#
+# cv_sections: order of sections in the CV.  letter_words: target length of the cover letter body.
+default:
+  name: General
+  cv_pages: 2
+  letter_words: 280
+  salutation: "Dear Hiring Team,"
+  cv_sections: [profile, experience, education, skills, languages]
+  letter_tone: "professional, concrete, warm but not effusive"
+  notes:
+    - "Used when the ad's country has no profile of its own."
+
+nl:
+  name: Netherlands
+  cv_pages: 2
+  letter_words: 250
+  salutation: "Dear Hiring Team,"
+  cv_sections: [profile, experience, education, skills, languages]
+  letter_tone: "direct and informal-professional; Dutch employers value plain, concrete statements"
+  notes:
+    - "Two pages at most. Photo, date of birth and marital status are not expected."
+    - "Short, specific cover letter; say what you would do in the first months."
+
+de:
+  name: Germany
+  cv_pages: 2
+  letter_words: 280
+  salutation: "Dear Sir or Madam,"
+  cv_sections: [profile, experience, education, skills, languages]
+  letter_tone: "formal, precise, fact-based"
+  notes:
+    - "Tabular, gap-free timeline is expected by many employers: keep dates on every role."
+    - "A photo is customary on German CVs but optional; this tool never includes one."
+    - "Date of birth and signature are optional; they are not added here."
+    - "Many ads expect German. Check the 'local language' flag before applying."
+
+at:
+  name: Austria
+  cv_pages: 2
+  letter_words: 280
+  salutation: "Dear Sir or Madam,"
+  cv_sections: [profile, experience, education, skills, languages]
+  letter_tone: "formal and courteous"
+  notes:
+    - "Close to Germany: formal tone, complete timeline, optional photo (not included here)."
+
+ch:
+  name: Switzerland
+  cv_pages: 2
+  letter_words: 280
+  salutation: "Dear Sir or Madam,"
+  cv_sections: [profile, experience, education, skills, languages]
+  letter_tone: "formal, precise, modest"
+  notes:
+    - "Work permits matter: say what you hold or need, if your CV states it."
+    - "Swiss employers often expect references and certificates later in the process."
+    - "Languages (German, French, Italian) are often decisive. Check the 'local language' flag."
+
+gb:
+  name: United Kingdom (England)
+  cv_pages: 2
+  letter_words: 300
+  salutation: "Dear Hiring Manager,"
+  cv_sections: [profile, experience, education, skills, languages]
+  letter_tone: "professional and positive, achievement-focused, a little more personal than in Germany"
+  notes:
+    - "No photo, date of birth or marital status (equality law). Two pages is the norm."
+    - "Right to work in the UK is usually asked early; state it only if your CV does."
+
+dk:
+  name: Denmark
+  cv_pages: 2
+  letter_words: 250
+  salutation: "Dear Hiring Team,"
+  cv_sections: [profile, experience, education, skills, languages]
+  letter_tone: "informal, honest, team-oriented; avoid exaggeration"
+  notes:
+    - "Danish letters are short and personal; show how you work with others."
+    - "Two pages at most."
+
+"no":
+  name: Norway
+  cv_pages: 2
+  letter_words: 250
+  salutation: "Dear Hiring Team,"
+  cv_sections: [profile, experience, education, skills, languages]
+  letter_tone: "modest, direct and factual; understatement is valued"
+  notes:
+    - "Short and factual. Employers often ask for references."
+
+fi:
+  name: Finland
+  cv_pages: 2
+  letter_words: 250
+  salutation: "Dear Hiring Team,"
+  cv_sections: [profile, experience, education, skills, languages]
+  letter_tone: "plain, factual and concise"
+  notes:
+    - "Keep it short and concrete. Language skills (Finnish, Swedish) are often listed explicitly."

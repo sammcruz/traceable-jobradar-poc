@@ -73,6 +73,23 @@ jobradar app                                   # local web page at http://localh
 A first `make run` takes a while: embeddings for all ads are quick, but the LLM step takes a few seconds per ad,
 so it is limited to tech categories and 200 ads by default. Results are cached by content hash.
 
+## Apply: tailored CV and cover letter
+
+In the web page, each match has a **Create CV & cover letter for this job** button. It opens the Apply page:
+pick the country conventions (Netherlands, Germany, Austria, Switzerland, England, Denmark, Norway, Finland;
+`config/countries.yml`), generate, edit the Markdown, and download DOCX, PDF or Markdown.
+
+- Local models only. The page refuses to generate if `LLM_BASE_URL` is not on this machine.
+- Output is English and **never has a photo**, even if your CV does.
+- Honest by construction: your CV is read into roles and bullets; a bullet is kept only if it appears in your CV
+  word for word, and the model only chooses and orders them. Numbers or skills in the generated profile and
+  letter that your CV does not contain are flagged, and skills the ad wants but your CV lacks are listed, not claimed.
+- Your name and contact details are typed into the page, stored in `data/private/identity.json`, never sent to the
+  model, and merged in at the end.
+- Lineage: an `apply.prepare` run with `jobradar_cv` and `jobradar_application` facets (country profile, counts,
+  model; no CV or letter text). `jobradar erase` removes the records and your contact details.
+- The country notes are starting points, not HR or legal advice. Check them before you apply.
+
 ## Sources and their terms
 
 | Source | Countries | Key | Notes |
@@ -115,7 +132,7 @@ still written for German and English ads; for other languages those fields are m
 | `jobradar stats` | Counts per category |
 | `jobradar cv load FILE` | PDF/Markdown → Markdown → profile (no name or contact data) → vector |
 | `jobradar match [filters]` | `--no-local-language --remote remote --salary --visa --contract permanent --seniority senior -c data` |
-| `jobradar app` | Streamlit page: match, explore, lineage, privacy |
+| `jobradar app` | Streamlit page: match, apply (CV and cover letter), explore, lineage, privacy |
 | `jobradar erase` | Delete your CV and everything derived from it, found through lineage |
 | `jobradar retention` | Re-apply the retention window |
 | `jobradar check-contracts` | Check tables against ODCS contracts |
@@ -148,6 +165,7 @@ If you point `LLM_BASE_URL` at a hosted API, the app and lineage will show that 
 | Qwen3 8B (default LLM) | Apache 2.0 | Extraction, CV profile, rerank |
 | BGE-M3 (default embeddings) | MIT | Multilingual embeddings (ads come in German, Swedish, Dutch and English) |
 | [Streamlit](https://streamlit.io) | Apache 2.0 | Local web page |
+| [python-docx](https://github.com/python-openxml/python-docx) / [ReportLab](https://www.reportlab.com) | MIT / BSD | DOCX and PDF export |
 
 Model licenses are per model variant. Check the license of the exact model you pull before you rely on it.
 
@@ -175,6 +193,8 @@ Read each source's terms before publishing anything derived from the ads. This r
 - Extraction rules are tuned for German and English ads (local-language detection also covers Swedish, Dutch, French, Italian, Polish and Spanish); the LLM fills gaps but can be wrong. Check
   `field_sources` before trusting a value.
 - No authentication: the web page is meant for localhost only.
+- Generated documents use plain templates: check layout, length and tone yourself. PDF uses Latin-1 characters
+  (other letters are folded to ASCII); use the DOCX if your name needs more.
 
 ## License
 
